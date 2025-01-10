@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.4.0-orange.svg)
 
-T6 (**Tensor ProducT ATTenTion Transformer**) is a state-of-the-art transformer model that leverages tensor product attention mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
+T6 (**Tensor ProducT ATTenTion Transformer**) is a state-of-the-art transformer model that leverages Tensor Product Attention (TPA) mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
 
 ## Table of Contents
 
