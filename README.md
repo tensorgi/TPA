@@ -34,7 +34,7 @@ Ensure you have Python 3.10 or higher installed. It's recommended to use a virtu
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/T6.git
+   git clone https://github.com/tensorgi/T6.git
    cd T6
    ```
 
