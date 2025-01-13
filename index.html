@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
+  <!-- Replace the content tag with appropriate information -->
+  <meta name="description" content="T6">
+  <meta property="og:title" content="Tensor Product Attention Is All You Need"/>
+  <meta property="og:description" content="Tensor Product Attention Is All You Need. Introducing Tensor ProducT ATTenTion Transformer (T6)"/>
+  <meta property="og:url" content="https://github.com/tensorgi/T6"/>
+  
+
+  <meta name="twitter:title" content="Tensor Product Attention Is All You Need">
+  <meta name="twitter:description" content="Tensor Product Attention Is All You Need. Introducing Tensor ProducT ATTenTion Transformer (T6)">
+  <!-- Keywords for your paper to be indexed by-->
+  <meta name="keywords" content="LLM, Transformers, Attention Mechanisms, Foundation Models, Model Architectures, TPA">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+  <title>Tensor Product Attention Is All You Need</title>
+  <link rel="icon" type="image/x-icon" href="static/images/star.ico">
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+  rel="stylesheet">
+
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
+  <script defer src="static/js/fontawesome.all.min.js"></script>
+  <script src="static/js/bulma-carousel.min.js"></script>
+  <script src="static/js/bulma-slider.min.js"></script>
+  <script src="static/js/index.js"></script>
+</head>
+<body>
+
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Tensor Product Attention Is All You Need</h1>
+            <div class="is-size-5 publication-authors">
+              <!-- Paper authors -->
+              <span class="author-block">
+                <a href="https://yifzhang.com" target="_blank">Yifan Zhang</a><sup>*</sup>,</span>
+                <span class="author-block">
+                  <a href="https://lauyikfung.github.io/" target="_blank">Yifeng Liu</a><sup>*</sup>,</span>
+                  <span class="author-block">
+                    <a href="https://scholar.google.com/citations?user=8foZzX4AAAAJ" target="_blank">Huizhuo Yuan</a>,</span>
+                    <span class="author-block">
+                      <a href="https://doraemonzzz.com" target="_blank">Zhen Qin</a>,</span>
+                      <span class="author-block">
+                        <a href="" target="_blank">Yang Yuan</a>,</span>
+                        <span class="author-block">
+                          <a href="https://web.cs.ucla.edu/~qgu/" target="_blank">Quanquan Gu</a>,</span>
+                          <span class="author-block">
+                            <a href="" target="_blank">Andrew Chi-Chih Yao</a></span>
+                  </div>
+
+                  <div class="is-size-5 publication-authors">
+                    <span class="author-block">IIIS, Tsinghua University,&nbsp;&nbsp;&nbsp;Shanghai Qi Zhi Institute,</span><br>
+                    <span class="author-block">University of California, Los Angeles,&nbsp;&nbsp;&nbsp;TapTap</span><br>
+                    <span class="eql-cntrb"><small><sup>*</sup> Indicates Equal Contribution</small></span>
+                  </div>
+
+                  <div class="column has-text-centered">
+                    <div class="publication-links">
+                         <!-- Arxiv PDF link -->
+                      <span class="link-block">
+                        <a href="https://tensorgi.github.io/T6/TPA.pdf" target="_blank"
+                        class="external-link button is-normal is-rounded is-dark">
+                        <span class="icon">
+                          <i class="fas fa-file-pdf"></i>
+                        </span>
+                        <span>Paper</span>
+                      </a>
+                    </span>
+
+                  <!-- Github link -->
+                  <span class="link-block">
+                    <a href="https://github.com/tensorgi/T6" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+
+                <!-- ArXiv abstract Link -->
+                <span class="link-block">
+                  <a href="https://tensorgi.github.io/T6/TPA.pdf" target="_blank"
+                  class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                    <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+
+              <!-- HuggingFace Model Link -->
+              <span class="link-block">
+                <a href="https://huggingface.co/tensorgi" target="_blank"
+                class="external-link button is-normal is-rounded is-dark">
+                <span class="icon">
+                  <img src="static/images/hf-logo.svg" alt="My Icon">
+                </span>
+                <span>Model</span>
+              </a>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Paper abstract -->
+<section class="section hero is-light">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+            <p>
+                Scaling language models to handle longer input sequences typically necessitates large key-value (KV) caches, resulting in substantial memory overhead during inference.
+                In this paper, we propose <strong>T</strong>ensor <strong>P</strong>roduct <strong>A</strong>ttention (TPA), a novel attention mechanism that uses tensor decompositions to represent queries, keys, and values compactly, significantly shrinking KV cache size at inference time.
+                By factorizing these representations into contextual low-rank components (contextual factorization) and seamlessly integrating with RoPE, TPA achieves improved model quality alongside memory efficiency.
+                Based on TPA, we introduce the <strong>T</strong>ensor Produc<strong>T</strong> A<strong>T</strong><strong>T</strong>en<strong>T</strong>ion <strong>T</strong>ransformer (<strong>T6</strong>), a new model architecture for sequence modeling. Through extensive empirical evaluation of language modeling tasks, we demonstrate that <strong>T6</strong> exceeds the performance of standard Transformer baselines including MHA, MQA, GQA, and MLA across various metrics, including perplexity and a range of renowned evaluation benchmarks.
+                Notably, TPA's memory efficiency enables the processing of significantly longer sequences under fixed resource constraints, addressing a critical scalability challenge in modern language models.
+            </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End paper abstract -->
+
+<!-- TPA. -->
+<div class="columns is-centered">
+  <div class="column is-three-fifths">
+    <h2 class="title is-3"> </h2>
+    <h2 class="title is-3">Tensor Product Attention</h2>
+    <p align="center">
+      <img src="static/images/architecture.png" width="1024" height="768"/>
+    </p>
+  </div>
+</div>
+<!--/ TPA. -->
+<!-- Results. -->
+<div class="columns is-centered">
+  <div class="column is-three-fifths">
+    <div class="content has-text-justified">
+      <ul>
+        <li>
+            We propose <strong>Tensor Product Attention (TPA)</strong>, a mechanism that factorizes 
+            <strong>Q</strong>, <strong>K</strong>, and <strong>V</strong> activations using 
+        <em>contextual</em> tensor-decompositions to achieve <span>10 times</span> or more reduction in inference-time KV cache size relative to standard attention mechanism 
+        <a href="#cite-vaswani2017attention">[Vaswani et al., 2017]</a> with improved performance compared to previous methods such as MHA, MQA, GQA, and MLA.
+        </li>
+        <li>
+            In addition, we <strong>unify existing attention mechanisms</strong> by revealing that MHA, MQA, and GQA <strong>all</strong> arise naturally as non-contextual variants of TPA.
+        </li>
+        <li>
+            We introduce <strong>T</strong>ensor Produc<strong>T</strong> A<strong>T</strong><strong>T</strong>en<strong>T</strong>ion <strong>T</strong>ransformer (<strong>T6</strong>), a new TPA-based model architecture for sequence modeling. On language modeling experiments, <strong>T6</strong> consistently improves validation perplexity and downstream evaluation performance with reduced KV cache size.
+        </li>
+        <li>
+            We show <strong>TPA</strong> integrates seamlessly with RoPE 
+            <a href="#cite-su2021roformer">[Su et al., 2024]</a>, facilitating easy adoption in popular foundation model architectures such as LLaMA and Gemma.
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+<!--/ Results. -->
+
+<!-- Results. -->
+<div class="columns is-centered">
+    <div class="column is-three-fifths">
+      <div class="content has-text-justified">
+        <h4 class="title">Experimental Results</h4>
+        <figure>
+            <p align="center">
+              <img src="static/images/medium-plot.png" width="900" height="600" alt="Training and validation loss plot (medium)"/>
+            </p>
+            <figcaption align="center">
+              Training loss and validation loss of pretraining medium-size (353M) models with different attention mechanisms on the FineWeb-Edu-100B dataset.
+            </figcaption>
+          </figure>
+        <figure>
+          <p align="center">
+            <img src="static/images/large-plot.png" width="900" height="600" alt="Training and validation loss plot (large)"/>
+          </p>
+          <figcaption align="center">
+            Training loss and validation loss of pretraining large-size (773M) models with different attention mechanisms on the FineWeb-Edu-100B dataset.
+          </figcaption>
+        </figure>
+        <figure>
+            <p align="center">
+                <img src="static/images/table2.png" width="800" height="800" alt="The evaluation results of pretrained medium-size models (353M)"/>
+            </p>
+            <p align="center">
+                <img src="static/images/table3.png" width="800" height="800" alt="The evaluation results of pretrained medium-size models (353M)"/>
+            </p>
+            <p align="center">
+                <img src="static/images/table4-5.png" width="800" height="800" alt="The evaluation results of pretrained large-size models (773M)"/>
+            </p>
+            <figcaption align="center">
+                Downstream Evaluation. We evaluate zero-shot and two-shot performance on standard benchmarks, including ARC (Yadav et al., 2019), BoolQ (Clark et al., 2019), HellaSwag (Zellers et al.,
+                2019), OBQA (Mihaylov et al., 2018), PIQA (Bisk et al., 2020), WinoGrande (Sakaguchi et al.,
+                2020) and MMLU (Hendrycks et al., 2021), using the lm-evaluation-harness codebase (Gao
+                et al., 2024).
+            </figcaption>
+          </figure>
+      </div>
+    </div>
+</div>
+<!--/ Results. -->
+
+<!-- Results. -->
+<div class="columns is-centered">
+    <div class="column is-three-fifths">
+      <div class="content has-text-justified">
+        <h4 class="title">Tensor Factorization of Queries, Keys, and Values</h4>
+        <figure>
+            <p align="center">
+              <img src="static/images/sec3_1.png" width="900" height="600" alt="Tensor Factorization of Queries, Keys, and Values"/>
+            </p>
+          </figure>
+      </div>
+    </div>
+</div>
+<!--/ Results. -->
+
+<!-- Results. -->
+<!-- <div class="columns is-centered">
+    <div class="column is-three-fifths">
+      <div class="content has-text-justified">
+        <h4 class="title">RoPE Compatibility and Acceleration</h4>
+        <figure>
+            <p align="center">
+              <img src="static/images/sec3_2.png" width="900" height="600" alt="RoPE Compatibility and Acceleration"/>
+            </p>
+          </figure>
+      </div>
+    </div>
+</div> -->
+<!--/ Results. -->
+
+<!-- Results. -->
+<div class="columns is-centered">
+    <div class="column is-three-fifths">
+      <div class="content has-text-justified">
+        <h4 class="title">KV Caching and Memory Reduction</h4>
+        <figure>
+            <p align="center">
+              <img src="static/images/sec3_3.png" width="900" height="600" alt="KV Caching and Memory Reduction"/>
+            </p>
+          </figure>
+      </div>
+    </div>
+</div>
+<!--/ Results. -->
+
+<!-- <section class="section" id="References">
+    <div id="cite-vaswani2017attention">
+        <p><strong>[Vaswani et al., 2017]</strong> Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
+            Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. <em>Advances in neural informa-
+                tion processing systems</em>, 30, 2017.</p>
+    </div>
+    <div id="cite-su2024roformer">
+        <p><strong>[Su et al., 2024]</strong> Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. <em>Neurocomputing, 568:127063</em>, 2024.</p>
+    </div>
+</section> -->
+
+<!--BibTex citation -->
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code></code></pre>
+    </div>
+</section>
+<!--End BibTex citation -->
+
+
+  <footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+
+          <p>
+            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
+            <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Statcounter tracking code -->
+  
+<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
+
+    <!-- End of Statcounter Code -->
+
+  </body>
+  </html>
