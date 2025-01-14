@@ -32,7 +32,7 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 - **Scalability:** Efficient training procedures optimized for large-scale datasets and multi-GPU setups.
 - **Flexible Data Support:** Compatible with popular datasets like [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) and [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/).
 - **Comprehensive Evaluation:** Integrated with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) for standardized benchmarking.
-- **Higher-order TPA** (TBD): [Higher_order_TPA](./Higher_order_TPA.pdf).
+- **Higher-order TPA** (TBD): [Higher-order TPA](./Higher_order_TPA.pdf).
 - **Flash TPA** (TBD): [Flash TPA](./Flash_TPA.pdf).
 
 ## Installation
