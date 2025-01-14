@@ -6,6 +6,12 @@
 
 T6 (**Tensor ProducT ATTenTion Transformer**) is a state-of-the-art transformer model that leverages Tensor Product Attention (TPA) mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
 
+This repository contains the official code for the paper "[Tensor Product Attention Is All You Need](https://arxiv.org/abs/2501.06425)".
+
+Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao) 
+
+[[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)] 
+
 ## Table of Contents
 
 - [Features](#features)
