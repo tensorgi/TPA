@@ -133,3 +133,16 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 - [Hugging Face](https://huggingface.co/) for providing the [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) dataset.
 - [EleutherAI](https://www.eleuther.ai/) for the [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness).
 - [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/) team for replicating the WebText dataset.
+
+## Citation
+
+If you use Tensor Product Attention (TPA) or the Tensor ProducT ATTenTion Transformer (T6) in your research or application, please consider citing it!
+
+```bibtex
+@article{zhang2025tensor,
+    title={Tensor Product Attention Is All You Need},
+    author={Zhang, Yifan and Liu, Yifeng and Yuan, Huizhuo and Qin, Zhen and Yuan, Yang and Gu, Quanquan and Yao, Andrew Chi-Chih},
+    journal={arXiv preprint arXiv:2501.06425},
+    year={2025},
+}
+```
