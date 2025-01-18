@@ -29,7 +29,7 @@ log_interval = 10
 
 # Optimizer configs
 optimizer_name = 'adamw'
-learning_rate = 6e-4
+learning_rate = 3e-4
 weight_decay = 1e-1
 beta1 = 0.9
 beta2 = 0.95
