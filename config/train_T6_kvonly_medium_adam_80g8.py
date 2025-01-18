@@ -35,7 +35,7 @@ beta2 = 0.95
 grad_clip = 1.0
 decay_lr = True
 warmup_iters = 2000
-min_lr = 3e-5
+min_lr = 6e-5
 schedule = 'cosine'
 
 # System configs
