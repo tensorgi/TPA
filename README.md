@@ -132,6 +132,7 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 
 ## Acknowledgements
 
+- [Karpathy’s nanoGPT](https://github.com/karpathy/nanoGPT) provides the foundational codebase upon which this repo is built.
 - [Hugging Face](https://huggingface.co/) for providing the [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) dataset.
 - [EleutherAI](https://www.eleuther.ai/) for the [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness).
 - [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/) team for replicating the WebText dataset.
