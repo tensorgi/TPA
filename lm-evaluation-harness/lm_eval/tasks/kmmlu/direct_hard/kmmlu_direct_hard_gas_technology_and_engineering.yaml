@@ -1,3 +1,0 @@
-dataset_name: gas_technology_and_engineering
-include: _direct_hard_kmmlu_yaml
-task: kmmlu_hard_direct_gas_technology_and_engineering

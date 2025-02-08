@@ -1,3 +1,0 @@
-[console_scripts]
-lm-eval = lm_eval.__main__:cli_evaluate
-lm_eval = lm_eval.__main__:cli_evaluate
