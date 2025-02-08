@@ -8,9 +8,9 @@ T6 (**Tensor ProducT ATTenTion Transformer**) is a state-of-the-art transformer 
 
 This repository contains the official code for the paper "[Tensor Product Attention Is All You Need](https://arxiv.org/abs/2501.06425)".
 
-Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao) 
+Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao)
 
-[[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)] 
+[[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
 
 ## Table of Contents
 
@@ -32,6 +32,8 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 - **Scalability:** Efficient training procedures optimized for large-scale datasets and multi-GPU setups.
 - **Flexible Data Support:** Compatible with popular datasets like [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) and [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/).
 - **Comprehensive Evaluation:** Integrated with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) for standardized benchmarking.
+- **Higher-order TPA** (TBD): [Higher-order TPA](./Higher_order_TPA.pdf).
+- **Flash TPA** (TBD): [Flash TPA](./Flash_TPA.pdf).
 
 ## Installation
 
@@ -43,14 +45,12 @@ Ensure you have Python 3.10 or higher installed. It's recommended to use a virtu
    git clone https://github.com/tensorgi/T6.git
    cd T6
    ```
-
 2. **Create and Activate a Virtual Environment**
 
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
-
 3. **Install Required Packages**
 
    ```bash
@@ -70,13 +70,11 @@ Fineweb-Edu-100B is a large-scale educational dataset hosted on Hugging Face.
    ```bash
    cd data/fineweb-edu
    ```
-
 2. **Run the Data Preparation Script**
 
    ```bash
    python fineweb-edu.py
    ```
-
 3. **Move the Prepared Data**
 
    ```bash
@@ -107,7 +105,6 @@ Pretrain the T6 model using the prepared datasets. The provided scripts support 
    ```bash
    bash pretrain.sh
    ```
-
 2. **Manual Execution with `torchrun`**
 
    For more control or customization, use `torchrun` to initiate training. Replace `config/train_T6_medium_adam_80g8.py` with your desired configuration file.
@@ -129,16 +126,20 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
    ```bash
    cd lm-evaluation-harness
    ```
-
 2. **Follow the Instructions Within This Directory**
 
    *Ensure your model is compatible with the evaluation harness requirements.*
 
 ## Acknowledgements
 
+- [Karpathy’s nanoGPT](https://github.com/karpathy/nanoGPT) provides the foundational codebase upon which this repo is built.
 - [Hugging Face](https://huggingface.co/) for providing the [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) dataset.
 - [EleutherAI](https://www.eleuther.ai/) for the [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness).
 - [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/) team for replicating the WebText dataset.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/T6&type=Date)](https://star-history.com/#tensorgi/T6&Date)
 
 ## Citation
 

@@ -225,7 +225,7 @@ if master_process:
 scaler = torch.cuda.amp.GradScaler(enabled=(dtype == 'float16'))
 
 # Optimizer
-from adamw import AdamW
+from torch.optim import AdamW
 params = list(model.parameters())
 optimizer = AdamW(params, lr=learning_rate, betas=(beta1, beta2), eps=1e-8, weight_decay=weight_decay)
 if init_from == 'resume':

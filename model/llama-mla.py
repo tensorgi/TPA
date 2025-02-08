@@ -107,16 +107,16 @@ class CausalSelfAttention(nn.Module):
             .transpose(1, 2))
         k_nope, v = torch.split(kv, [self.qk_nope_head_dim, self.v_head_dim], dim=-1)
 
-        cos_q, sin_q = self.rotary(q_pe)
-        cos_k, sin_k = self.rotary(k_pe)
-        q_pe, k_pe = apply_rotary_emb(q_pe, cos_q, sin_q), apply_rotary_emb(k_pe, cos_k, sin_k)
+        cos_q, sin_q = self.rotary(q_pe.transpose(1,2))
+        cos_k, sin_k = self.rotary(k_pe.transpose(1,2))
+        q_pe, k_pe = apply_rotary_emb(q_pe.transpose(1,2), cos_q, sin_q), apply_rotary_emb(k_pe.transpose(1,2), cos_k, sin_k)
         
         q_new = q.new_empty(B, self.n_head, T, self.q_head_dim)
         q_new[:, :, :, : self.qk_nope_head_dim] = q_nope
-        q_new[:, :, :, self.qk_nope_head_dim :] = q_pe
+        q_new[:, :, :, self.qk_nope_head_dim :] = q_pe.transpose(1,2)
         k = k_pe.new_empty(B, self.n_head, T, self.q_head_dim)
         k[:, :, :, : self.qk_nope_head_dim] = k_nope
-        k[:, :, :, self.qk_nope_head_dim :] = k_pe
+        k[:, :, :, self.qk_nope_head_dim :] = k_pe.transpose(1,2)
         y = F.scaled_dot_product_attention(
             q_new, 
             k, 
