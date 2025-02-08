@@ -1,7 +1,0 @@
-torch==2.4.0 
-numpy 
-transformers 
-datasets 
-tiktoken 
-wandb 
-tqdm
