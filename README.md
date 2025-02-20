@@ -15,6 +15,7 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 ## Table of Contents
 
 - [Features](#features)
+- [Hardware Requirements](#hardware-Requirement)
 - [Installation](#installation)
 - [Data Preparation](#data-preparation)
   - [Fineweb-Edu-100B](#fineweb-edu-100b)
@@ -34,6 +35,9 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 - **Comprehensive Evaluation:** Integrated with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) for standardized benchmarking.
 - **Higher-order TPA** (TBD): [Higher-order TPA](./Higher_order_TPA.pdf).
 - **Flash TPA** (TBD): [Flash TPA](./Flash_TPA.pdf).
+
+## Hardware Requirements
+A100 and H100 are recommended. At least 8*80G VRAM is needed.
 
 ## Installation
 
