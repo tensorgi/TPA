@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 
 
-def tpa_decode_torch(
+def flashtpa_decode_torch(
     aq: torch.Tensor,
     ak: torch.Tensor,
     av: torch.Tensor,
