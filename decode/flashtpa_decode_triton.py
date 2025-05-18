@@ -4,7 +4,33 @@ import torch
 import triton
 import triton.language as tl
 
-from xopes.utils import generate_configs
+def generate_configs(input_dict):
+    num_stages_list = input_dict.pop("num_stages", [2])
+    num_warps_list = input_dict.pop("num_warps", [4])
+
+    # Extract keys and values from the input dictionary
+    keys = list(input_dict.keys())
+    values = list(input_dict.values())
+
+    # Generate the Cartesian product of the values
+    combinations = list(itertools.product(*values))
+
+    # Create a list of dictionaries from the combinations
+    results = [{keys[i]: combo[i] for i in range(len(keys))} for combo in combinations]
+
+    configs = []
+    for num_stages in num_stages_list:
+        for num_warps in num_warps_list:
+            for config in results:
+                configs.append(
+                    triton.Config(config, num_stages=num_stages, num_warps=num_warps)
+                )
+
+    # we only need one config for debug
+    if XOPES_DEBUG:
+        return configs[:1]
+    else:
+        return configs
 
 
 @triton.autotune(
