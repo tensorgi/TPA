@@ -14,17 +14,19 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 
 ## Table of Contents
 
-- [Features](#features)
-- [Installation](#installation)
-- [Data Preparation](#data-preparation)
-  - [Fineweb-Edu-100B](#fineweb-edu-100b)
-  - [OpenWebText](#openwebtext)
-- [Pretraining](#pretraining)
-- [Evaluation](#evaluation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Acknowledgements](#acknowledgements)
+- [T6: Tensor ProducT ATTenTion Transformer](#t6-tensor-product-attention-transformer)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Hardware Requirements](#hardware-requirements)
+  - [Installation](#installation)
+  - [Data Preparation](#data-preparation)
+    - [Fineweb-Edu-100B](#fineweb-edu-100b)
+    - [OpenWebText](#openwebtext)
+  - [Pretraining](#pretraining)
+  - [Evaluation](#evaluation)
+  - [Acknowledgements](#acknowledgements)
+  - [Star History](#star-history)
+  - [Citation](#citation)
 
 ## Features
 
@@ -32,8 +34,10 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 - **Scalability:** Efficient training procedures optimized for large-scale datasets and multi-GPU setups.
 - **Flexible Data Support:** Compatible with popular datasets like [Fineweb-Edu-100B](https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu/) and [OpenWebText](https://openwebtext2.readthedocs.io/en/latest/).
 - **Comprehensive Evaluation:** Integrated with [lm-evaluation-harness](https://github.com/EleutherAI/lm-evaluation-harness) for standardized benchmarking.
-- **Higher-order TPA** (TBD): [Higher-order TPA](./Higher_order_TPA.pdf).
-- **Flash TPA** (TBD): [Flash TPA](./Flash_TPA.pdf).
+- **FlashTPA Decoding**: see Algorithm 2 and 3 in [Paper](./Tensor_Product_Attention.pdf) for FlashTPA Decoding algorithms and [./decode](./decode) for Python and Triton implementations.
+
+## Hardware Requirements
+A100 and H100 are recommended. At least 8*80G VRAM is needed.
 
 ## Installation
 

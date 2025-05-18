@@ -6,6 +6,7 @@ logs/
 .cache/wandb
 .cache/huggingface
 wandb/
+lm-evaluation-harness/
 *log
 .DS_Store
 .idea

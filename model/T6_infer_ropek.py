@@ -109,7 +109,9 @@ class TPA(nn.Module):
         self.cache_vA = torch.zeros((args.max_batch_size, args.max_seq_len, self.n_heads, self.rank,)).cuda()
         self.cache_kB = torch.zeros((args.max_batch_size, args.max_seq_len, self.rank, self.head_dim,)).cuda()
         self.cache_vB = torch.zeros((args.max_batch_size, args.max_seq_len, self.rank, self.head_dim,)).cuda()
-        
+        self.wo = nn.Linear(self.n_head * self.head_dim, self.n_embd, bias=False)
+        self.wo.weight.data.zero_()
+                
         self.reset_parameters()
 
         if self.using_groupnorm:
