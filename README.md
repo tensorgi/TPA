@@ -1,4 +1,4 @@
-# T6: Tensor ProducT ATTenTion Transformer
+# TPA: Tensor ProducT ATTenTion Transformer (T6)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
