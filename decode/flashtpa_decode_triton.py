@@ -1,8 +1,10 @@
 from typing import Optional
-
+import itertools
 import torch
 import triton
 import triton.language as tl
+import os
+XOPES_DEBUG = eval(os.environ.get("XOPES_DEBUG", default="False"))
 
 def generate_configs(input_dict):
     num_stages_list = input_dict.pop("num_stages", [2])

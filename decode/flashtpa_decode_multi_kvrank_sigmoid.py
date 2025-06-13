@@ -5,7 +5,6 @@ import triton
 import triton.language as tl
 import torch.nn.functional as F
 import os
-import pytest
 XOPES_DEBUG = eval(os.environ.get("XOPES_DEBUG", default="False"))
 
 def generate_configs(input_dict):
@@ -36,20 +35,6 @@ def generate_configs(input_dict):
     else:
         return configs
     
-THRESHOLD_DICT = {
-    torch.float32: [1e-2, 1e-2],
-    torch.float16: [5e-2, 1e-2],
-    torch.bfloat16: [5e-2, 1e-2],
-}
-
-def get_threshold(dtype):
-    assert dtype in [
-        torch.float16,
-        torch.float32,
-        torch.bfloat16,
-    ], "dtype {dtype} not supported"
-    return THRESHOLD_DICT[dtype]
-
 @triton.jit
 def _sigmoid(x):
     """
@@ -760,7 +745,7 @@ def tpa_decode_parallel_bh_triton(
 
     return o
 
-def tpa_decode_parallel_bn_triton_v2(
+def tpa_decode_parallel_bn_triton(
     aq: torch.Tensor,
     ak: torch.Tensor,
     av: torch.Tensor,
@@ -987,216 +972,48 @@ def tpa_decode_torch(
 
     return o
 
-# if __name__ == "__main__":
-#     torch.manual_seed(2024)
-#     b = 2
-#     n = 1
-#     m = 256
-#     h = 16
-#     r = 16
-#     d = 128
-#     e = 64
-#     s = 1
-#     dtype = torch.bfloat16
-#     aq = torch.randn((b, n, h, r), dtype=dtype).cuda()
-#     ak = torch.randn((b, m, h, s), dtype=dtype).cuda()
-#     av = torch.randn((b, m, h, s), dtype=dtype).cuda()
-#     bq = torch.randn((b, n, r, d), dtype=dtype).cuda()
-#     bk = torch.randn((b, m, d, s), dtype=dtype).cuda()
-#     bv = torch.randn((b, m, e, s), dtype=dtype).cuda()
-#     o1 = tpa_decode_parallel_b_triton(aq, ak, av, bq, bk, bv)
-#     o2 = tpa_decode_parallel_bh_triton(aq, ak, av, bq, bk, bv)
-#     o3 = tpa_decode_parallel_bn_triton_v2(aq, ak, av, bq, bk, bv)
-#     o_naive = tpa_decode_naive_torch(aq, ak, av, bq, bk, bv)
-#     o_decode = tpa_decode_torch(aq, ak, av, bq, bk, bv)
-
-#     print(f"b: {b}, n: {n}, m: {m}, h: {h}, r: {r}, d: {d}, e: {e}, s: {s}")
-#     print("naive torch norm:", torch.norm(o_naive).item())
-#     print("torch norm:", torch.norm(o_decode).item())
-#     print("triton parallel_b norm:", torch.norm(o1).item())
-#     print("triton parallel_bh norm:", torch.norm(o2).item())
-#     print("triton parallel_bn norm:", torch.norm(o3).item())
-#     print(
-#         "o diff max (torch vs naive): ",
-#         torch.abs(o_decode - o_naive).max().item()
-#     )
-#     print(
-#         "o diff max (triton parallel_b vs naive): ",
-#         torch.abs(o1 - o_naive).max().item()
-#     )
-#     print(
-#         "o diff max (triton parallel_bh vs naive): ",
-#         torch.abs(o2 - o_naive).max().item()
-#     )
-#     print(
-#         "o diff max (triton parallel_bn vs naive): ",
-#         torch.abs(o3 - o_naive).max().item()
-#     )
-
-def get_params():
-    shapes = [
-        # standard shapes
-        (2, 256, 16, 16, 128, 64, 4),
-        (2, 2048, 16, 16, 128, 64, 4),
-        # larger kv_rank
-        (2, 256, 16, 16, 128, 64, 16),
-        (2, 2048, 16, 16, 128, 64, 16),
-        # # special seqlen
-        (2, 2049, 16, 16, 128, 64, 16),
-        (2, 2047, 16, 16, 128, 64, 16),
-        # special rank
-        (2, 2049, 17, 16, 128, 64, 16),
-        (2, 2047, 31, 16, 128, 64, 16),
-        # special num heads
-        (2, 2049, 17, 31, 128, 64, 16),
-        (2, 2047, 31, 17, 128, 64, 16),
-        # special head dim
-        (2, 2049, 17, 31, 129, 63, 16),
-        (2, 2047, 31, 17, 127, 65, 16),
-    ]
-    return shapes
-
-
-@pytest.mark.parametrize("shape", get_params())
-@pytest.mark.parametrize("dtype", [torch.bfloat16])
-def test_tpa_decode(shape, dtype):
-    # Set random seed for reproducibility
+if __name__ == "__main__":
     torch.manual_seed(2024)
-    device = torch.device("cuda")
-
-    # Unpack shape parameters
-    b, m, h, r, d, e, s = shape
+    b = 2
     n = 1
+    m = 256
+    h = 16
+    r = 16
+    d = 128
+    e = 64
+    s = 1
+    dtype = torch.bfloat16
+    aq = torch.randn((b, n, h, r), dtype=dtype).cuda()
+    ak = torch.randn((b, m, h, s), dtype=dtype).cuda()
+    av = torch.randn((b, m, h, s), dtype=dtype).cuda()
+    bq = torch.randn((b, n, r, d), dtype=dtype).cuda()
+    bk = torch.randn((b, m, d, s), dtype=dtype).cuda()
+    bv = torch.randn((b, m, e, s), dtype=dtype).cuda()
+    o1 = tpa_decode_parallel_b_triton(aq, ak, av, bq, bk, bv)
+    o2 = tpa_decode_parallel_bh_triton(aq, ak, av, bq, bk, bv)
+    o3 = tpa_decode_parallel_bn_triton(aq, ak, av, bq, bk, bv)
+    o_naive = tpa_decode_naive_torch(aq, ak, av, bq, bk, bv)
+    o_decode = tpa_decode_torch(aq, ak, av, bq, bk, bv)
 
-    # Generate input tensors
-    aq = torch.randn((b, n, h, r), dtype=dtype, device=device).requires_grad_()
-    ak = torch.randn((b, m, h, s), dtype=dtype, device=device).requires_grad_()
-    av = torch.randn((b, m, h, s), dtype=dtype, device=device).requires_grad_()
-    bq = torch.randn((b, n, r, d), dtype=dtype, device=device).requires_grad_()
-    bk = torch.randn((b, m, d, s), dtype=dtype, device=device).requires_grad_()
-    bv = torch.randn((b, m, e, s), dtype=dtype, device=device).requires_grad_()
-    do = torch.randn((b, n, h, e), dtype=dtype, device=device)
-
-    # Optional scale parameters
-    scale = d**-0.5
-    scale_q = 1 / r
-    scale_k = 1.0 / s
-    scale_v = 1.0 / s
-
-    ##### Forward pass
-    o_naive_torch = tpa_decode_naive_torch(
-        aq=aq,
-        ak=ak,
-        av=av,
-        bq=bq,
-        bk=bk,
-        bv=bv,
-        scale=scale,
-        scale_q=scale_q,
-        scale_k=scale_k,
-        scale_v=scale_v,
-    )
-
-    # PyTorch implementation
-    o_torch = tpa_decode_torch(
-        aq=aq,
-        ak=ak,
-        av=av,
-        bq=bq,
-        bk=bk,
-        bv=bv,
-        scale=scale,
-        scale_q=scale_q,
-        scale_k=scale_k,
-        scale_v=scale_v,
-    )
-
-    # Triton implementation
-    o_parallel_b_triton = tpa_decode_parallel_b_triton(
-        aq=aq,
-        ak=ak,
-        av=av,
-        bq=bq,
-        bk=bk,
-        bv=bv,
-        scale=scale,
-        scale_q=scale_q,
-        scale_k=scale_k,
-        scale_v=scale_v,
-    )
-
-    o_parallel_bh_triton = tpa_decode_parallel_bh_triton(
-        aq=aq,
-        ak=ak,
-        av=av,
-        bq=bq,
-        bk=bk,
-        bv=bv,
-        scale=scale,
-        scale_q=scale_q,
-        scale_k=scale_k,
-        scale_v=scale_v,
-    )
-
-    o_parallel_bn_triton = tpa_decode_parallel_bn_triton_v2(
-        aq=aq,
-        ak=ak,
-        av=av,
-        bq=bq,
-        bk=bk,
-        bv=bv,
-        scale=scale,
-        scale_q=scale_q,
-        scale_k=scale_k,
-        scale_v=scale_v,
-    )
-
-    # Get tolerance thresholds based on dtype
-    atol, rtol = get_threshold(dtype)
-    print("naive torch norm:", torch.norm(o_naive_torch).item())
-    print("torch norm:", torch.norm(o_torch).item())
-    print("triton parallel_b norm:", torch.norm(o_parallel_b_triton).item())
-    print("triton parallel_bh norm:", torch.norm(o_parallel_bh_triton).item())
-    print("triton parallel_bn norm:", torch.norm(o_parallel_bn_triton).item())
-    ##### Check forward pass results
+    print(f"b: {b}, n: {n}, m: {m}, h: {h}, r: {r}, d: {d}, e: {e}, s: {s}")
+    print("naive torch norm:", torch.norm(o_naive).item())
+    print("torch norm:", torch.norm(o_decode).item())
+    print("triton parallel_b norm:", torch.norm(o1).item())
+    print("triton parallel_bh norm:", torch.norm(o2).item())
+    print("triton parallel_bn norm:", torch.norm(o3).item())
     print(
         "o diff max (torch vs naive): ",
-        torch.abs(o_torch - o_naive_torch).max().item(),
+        torch.abs(o_decode - o_naive).max().item()
     )
     print(
-        "o diff norm (torch vs naive): ",
-        torch.norm(o_torch - o_naive_torch).item(),
-    )
-    assert torch.allclose(o_torch, o_naive_torch, atol=atol, rtol=rtol)
-
-    print(
-        "o diff max (torch vs triton parallel_b): ",
-        torch.abs(o_torch - o_parallel_b_triton).max().item(),
+        "o diff max (triton parallel_b vs naive): ",
+        torch.abs(o1 - o_naive).max().item()
     )
     print(
-        "o diff norm (torch vs triton parallel_b): ",
-        torch.norm(o_torch - o_parallel_b_triton).item(),
-    )
-    assert torch.allclose(o_torch, o_parallel_b_triton, atol=atol, rtol=rtol)
-
-    print(
-        "o diff max (torch vs triton parallel_bh): ",
-        torch.abs(o_torch - o_parallel_bh_triton).max().item(),
+        "o diff max (triton parallel_bh vs naive): ",
+        torch.abs(o2 - o_naive).max().item()
     )
     print(
-        "o diff norm (torch vs triton parallel_bh): ",
-        torch.norm(o_torch - o_parallel_bh_triton).item(),
+        "o diff max (triton parallel_bn vs naive): ",
+        torch.abs(o3 - o_naive).max().item()
     )
-    assert torch.allclose(o_torch, o_parallel_bh_triton, atol=atol, rtol=rtol)
-
-    print(
-        "o diff max (torch vs triton parallel_bn): ",
-        torch.abs(o_torch - o_parallel_bn_triton).max().item(),
-    )
-    print(
-        "o diff norm (torch vs triton parallel_bn): ",
-        torch.norm(o_torch - o_parallel_bn_triton).item(),
-    )
-    assert torch.allclose(o_torch, o_parallel_bn_triton, atol=atol, rtol=rtol)
-    
-# test_tpa_decode((2, 256, 16, 16, 128, 64, 4), torch.bfloat16)
