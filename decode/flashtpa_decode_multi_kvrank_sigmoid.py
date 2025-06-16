@@ -5,7 +5,6 @@ import triton
 import triton.language as tl
 import torch.nn.functional as F
 import os
-XOPES_DEBUG = eval(os.environ.get("XOPES_DEBUG", default="False"))
 
 def generate_configs(input_dict):
     num_stages_list = input_dict.pop("num_stages", [2])
@@ -29,11 +28,7 @@ def generate_configs(input_dict):
                     triton.Config(config, num_stages=num_stages, num_warps=num_warps)
                 )
 
-    # we only need one config for debug
-    if XOPES_DEBUG:
-        return configs[:1]
-    else:
-        return configs
+    return configs
     
 @triton.jit
 def _sigmoid(x):
