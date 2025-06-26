@@ -14,7 +14,7 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 
 ## 🔔 NEWS
 - **[06/13/2025]** The decoding code for FlashTPA is available.
-- **[05/29/2025]** Our paper is updated on ArXiv: https://arxiv.org/abs/2501.06425v4.
+- **[05/29/2025]** Our paper is updated on ArXiv for FlashTPA Decoding: https://arxiv.org/abs/2501.06425.
 - **[01/11/2025]** Our code is open-sourced!
 - **[01/11/2025]** Our paper is released on arXiv: https://arxiv.org/abs/2501.06425.
 
