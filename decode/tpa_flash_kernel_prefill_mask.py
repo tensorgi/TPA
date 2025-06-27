@@ -7,8 +7,6 @@ import torch.nn.functional as F
 import os
 import pytest
 
-# BUG IS NOT FIXED, PLEASE FIX BUGS BEFORE USING THIS KERNEL
-
 def generate_configs(input_dict):
     num_stages_list = input_dict.pop("num_stages", [2])
     num_warps_list = input_dict.pop("num_warps", [4])
@@ -149,12 +147,11 @@ def _tpa_decode_parallel_b(
     aq = _sigmoid(tl.load(aq_block_ptr, mask=mask_r[:, None] & mask_h[None, :], other=0))
     bq = tl.load(bq_block_ptr, mask=mask_d[:, None] & mask_r[None, :], other=0)
 
-    score3 = tl.zeros([BLOCK, BLOCK_H], dtype=tl.float32)
     o_ = tl.zeros([BLOCK_E, BLOCK_H], dtype=tl.float32)
     for i in range(NUM_BLOCKS):
         mask_m = (i * BLOCK + array_m) < M
-        score3 = score3 * 0.0  # reset score3 for each block
-        attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=0).expand_dims(1)
+        score3 = tl.zeros([BLOCK, BLOCK_H], dtype=tl.float32)  # reset score3 for each block
+        attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=-float("inf")).expand_dims(1)
         # check whether attn_bias is all -inf:
         if tl.sum(attn_bias != -float("inf")) > 0:   
             for j in range(S):
@@ -185,12 +182,9 @@ def _tpa_decode_parallel_b(
                 av = _sigmoid(tl.load(av_block_ptr, mask=mask_m[:, None] & mask_h[None, :], other=0))
                 bv = (
                     tl.load(bv_block_ptr, mask=mask_e[:, None] & mask_m[None, :], other=0)
-                    * SCALE_V
                 )
-                # M H, H -> M H
-                p = p0 * av
                 # E M, M H -> E H
-                o_ += tl.dot(bv.to(p.dtype), p)
+                o_ += tl.dot(bv.to(p0.dtype), p0 * av * SCALE_V)
                 av_block_ptr += M * H
                 bv_block_ptr += M * E
 
@@ -309,12 +303,11 @@ def _tpa_decode_parallel_bh(
     aq = _sigmoid(tl.load(aq_block_ptr, mask=mask_r, other=0))
     bq = tl.load(bq_block_ptr, mask=mask_d[:, None] & mask_r[None, :], other=0)
 
-    score3 = tl.zeros([BLOCK], dtype=tl.float32)
     o_ = tl.zeros([BLOCK_E], dtype=tl.float32)
     for i in range(NUM_BLOCKS):
         mask_m = (i * BLOCK + array_m) < M
-        score3 = score3 * 0.0  # reset score3 for each block
-        attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=0)
+        score3 = tl.zeros([BLOCK], dtype=tl.float32)  # reset score3 for each block
+        attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=-float("inf"))
         if tl.sum(attn_bias != -float("inf")) > 0: 
             for j in range(S):
                 ak = _sigmoid(tl.load(ak_block_ptr, mask=mask_m, other=0))
@@ -476,13 +469,12 @@ def _tpa_decode_parallel_bn(
     aq = _sigmoid(tl.load(aq_block_ptr, mask=mask_r[:, None] & mask_h[None, :], other=0))
     bq = tl.load(bq_block_ptr, mask=mask_d[:, None] & mask_r[None, :], other=0)
 
-    score3 = tl.zeros([BLOCK, BLOCK_H], dtype=tl.float32)
     o_ = tl.zeros([BLOCK_E, BLOCK_H], dtype=tl.float32)
     for i in range(NUM_BLOCKS):
         if cnt < M:
             mask_m = (i * BLOCK + array_m) < M
-            score3 = score3 * 0.0  # reset score3 for each block
-            attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=0).expand_dims(1)
+            score3 = tl.zeros([BLOCK, BLOCK_H], dtype=tl.float32)  # reset score3 for each block
+            attn_bias = tl.load(attn_bias_ptr, mask=mask_m[:], other=-float("inf")).expand_dims(1)
             if tl.sum(attn_bias != -float("inf")) > 0:
                 for j in range(S):
                     ak = _sigmoid(tl.load(ak_block_ptr, mask=mask_m[:, None] & mask_h[None, :], other=0))
@@ -512,12 +504,9 @@ def _tpa_decode_parallel_bn(
                     av = _sigmoid(tl.load(av_block_ptr, mask=mask_m[:, None] & mask_h[None, :], other=0))
                     bv = (
                         tl.load(bv_block_ptr, mask=mask_e[:, None] & mask_m[None, :], other=0)
-                        * SCALE_V
                     )
-                    # M H, H -> M H
-                    p = p0 * av
                     # E M, M H -> E H
-                    o_ += tl.dot(bv.to(p.dtype), p)
+                    o_ += tl.dot(bv.to(p0.dtype), p0 * av * SCALE_V)
                     av_block_ptr += M * H
                     bv_block_ptr += M * E
                 # update
@@ -570,14 +559,13 @@ def _tpa_decode_parallel_bn(
     key=[
         "B",
         "H",
-        "D",
         "E",
     ],
 )
 @triton.jit
 def _tpa_decode_reduce(
     X,  # B NUM_BLOCK_M N H E
-    LSE,  # B N H NUM_BLOCK_M
+    LSE,  # B N NUM_BLOCK_M H
     O,  # B N H E
     CU_SEQLENS,  # L
     B: tl.constexpr,
@@ -596,7 +584,7 @@ def _tpa_decode_reduce(
 
     # compute offset
     offset_x = off_b * NUM_BLOCK_M * N * H * E + off_h * E + off_n * NUM_BLOCK_M * H * E
-    offset_lse = off_b * NUM_BLOCK_M * N * H + off_h * BLOCK_H + off_n * NUM_BLOCK_M * H
+    offset_lse = off_b * NUM_BLOCK_M * N * H + off_h + off_n * NUM_BLOCK_M * H
     offset_o = off_b * N * H * E + off_h * E + off_n * H * E
 
     # compute block ptr and mask
@@ -605,29 +593,26 @@ def _tpa_decode_reduce(
     array_num_block_m = tl.arange(0, BLOCK_NUM_BLOCK_M)
 
     mask_e = array_e < E
-    array_h < H
     mask_num_block_m = array_num_block_m < NUM_BLOCK_M
 
     x_block_ptr = (
         X + offset_x + array_num_block_m[:, None] * H * E + array_e[None, :]
     )  # NUM_BLOCK_M E
-    lse_block_ptr = LSE + offset_lse + array_num_block_m  # NUM_BLOCK_M
+    lse_block_ptr = LSE + offset_lse + array_num_block_m[:, None] * H  # NUM_BLOCK_M
     o_block_ptr = O + offset_o + array_e  # E
 
-    x = tl.load(x_block_ptr, mask=mask_num_block_m[:, None] & mask_e[None, :], other=0)
-    lse = tl.load(lse_block_ptr, mask=mask_num_block_m, other=0)
+    x = tl.load(x_block_ptr, mask=mask_num_block_m[:, None] & mask_e[None, :], other=0.0)
+    lse = tl.load(lse_block_ptr, mask=mask_num_block_m[:, None], other=0).reshape(BLOCK_NUM_BLOCK_M)
     # get the min of all non-inf values in lse
 
     mask_valid = (lse != -float("inf"))
-    m_non_inf = tl.where(mask_valid, lse, float("inf"))
     
-    m = tl.min(m_non_inf)
+    m = tl.max(lse)
     p_ = tl.exp(lse - m)
     p_ = tl.where(mask_valid & mask_num_block_m, p_, 0.)
-    sum_p = tl.sum(p_)
-    p = p_ / sum_p
+    p = p_ / tl.sum(p_, axis=0)
 
-    o = tl.sum(x * p[:, None], axis=0)
+    o = tl.sum(x * p.reshape(BLOCK_NUM_BLOCK_M, 1), axis=0)
     tl.store(o_block_ptr, o, mask=mask_e)
 
     
@@ -700,7 +685,7 @@ def tpa_decode_parallel_b_triton(
             attn_bias.masked_fill_(attn_mask.logical_not(), float("-inf"))
         else:
             attn_bias = attn_mask + attn_bias
-    print(attn_bias)
+            
     _tpa_decode_parallel_b[grid](
         AQ=aq,
         AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
@@ -729,11 +714,7 @@ def tpa_decode_parallel_b_triton(
         BLOCK_E=BLOCK_E,
         BLOCK_S=BLOCK_S,
     )
-    # get all the index of o that is nan and print
-    if torch.isnan(o).any():
-        print("NaN found in output tensor")
-        print(torch.isnan(o).nonzero(as_tuple=True))
-    print(o[:2, :2, :2, :2])  # print the first 2 elements of the output tensor for debugging
+
     return o
 
 def tpa_decode_parallel_bh_triton(
@@ -951,7 +932,7 @@ def tpa_decode_parallel_bn_triton_v2(
     
     _tpa_decode_reduce[grid](
         X=o_, 
-        LSE=lse.permute(0, 1, 3, 2).contiguous(),  # B N H NUM_BLOCK_M
+        LSE=lse,
         O=o,
         CU_SEQLENS=cu_seqlens,
         B=b,
@@ -1129,8 +1110,8 @@ if __name__ == "__main__":
     # o_decode = tpa_decode_torch(aq, ak, av, bq, bk, bv, attn_mask=attn_mask)
 
     o1 = tpa_decode_parallel_b_triton(aq, ak, av, bq, bk, bv, is_causal=True)
-    # o2 = tpa_decode_parallel_bh_triton(aq, ak, av, bq, bk, bv, is_causal=True)
-    # o3 = tpa_decode_parallel_bn_triton_v2(aq, ak, av, bq, bk, bv, is_causal=True)
+    o2 = tpa_decode_parallel_bh_triton(aq, ak, av, bq, bk, bv, is_causal=True)
+    o3 = tpa_decode_parallel_bn_triton_v2(aq, ak, av, bq, bk, bv, is_causal=True)
     o_naive = tpa_decode_naive_torch(aq, ak, av, bq, bk, bv, is_causal=True)
     o_decode = tpa_decode_torch(aq, ak, av, bq, bk, bv, is_causal=True)
 
@@ -1138,8 +1119,8 @@ if __name__ == "__main__":
     print("naive torch norm:", torch.norm(o_naive).item())
     print("torch norm:", torch.norm(o_decode).item())
     print("triton parallel_b norm:", torch.norm(o1).item())
-    # print("triton parallel_bh norm:", torch.norm(o2).item())
-    # print("triton parallel_bn norm:", torch.norm(o3).item())
+    print("triton parallel_bh norm:", torch.norm(o2).item())
+    print("triton parallel_bn norm:", torch.norm(o3).item())
     print(
         "o diff max (torch vs naive): ",
         torch.abs(o_decode - o_naive).max().item()
@@ -1148,14 +1129,14 @@ if __name__ == "__main__":
         "o diff max (triton parallel_b vs naive): ",
         torch.abs(o1 - o_naive).max().item()
     )
-    # print(
-    #     "o diff max (triton parallel_bh vs naive): ",
-    #     torch.abs(o2 - o_naive).max().item()
-    # )
-    # print(
-    #     "o diff max (triton parallel_bn vs naive): ",
-    #     torch.abs(o3 - o_naive).max().item()
-    # )
+    print(
+        "o diff max (triton parallel_bh vs naive): ",
+        torch.abs(o2 - o_naive).max().item()
+    )
+    print(
+        "o diff max (triton parallel_bn vs naive): ",
+        torch.abs(o3 - o_naive).max().item()
+    )
 
 def get_params():
     shapes = [
@@ -1163,20 +1144,20 @@ def get_params():
         (2, 256, 256, 16, 16, 128, 64, 4),
         (2, 2048, 2048, 16, 16, 128, 64, 4),
         # # larger kv_rank
-        # (2, 256, 256, 16, 16, 128, 64, 16),
-        # (2, 2048, 2048, 16, 16, 128, 64, 16),
+        (2, 256, 256, 16, 16, 128, 64, 16),
+        (2, 2048, 2048, 16, 16, 128, 64, 16),
         # # special seqlen
-        # (2, 2049, 2049, 16, 16, 128, 64, 16),
-        # (2, 2047, 2047, 16, 16, 128, 64, 16),
+        (2, 2049, 2049, 16, 16, 128, 64, 16),
+        (2, 2047, 2047, 16, 16, 128, 64, 16),
         # special rank
         (2, 2049, 2049, 17, 16, 128, 64, 16),
         (2, 2047, 2047, 31, 16, 128, 64, 16),
         # # special num heads
-        # (2, 2049, 2049, 17, 31, 128, 64, 16),
-        # (2, 2047, 2047, 31, 17, 128, 64, 16),
+        (2, 2049, 2049, 17, 31, 128, 64, 16),
+        (2, 2047, 2047, 31, 17, 128, 64, 16),
         # # special head dim
-        # (2, 2049, 2049, 17, 31, 129, 63, 16),
-        # (2, 2047, 2047, 31, 17, 127, 65, 16),
+        (2, 2049, 2049, 17, 31, 129, 63, 16),
+        (2, 2047, 2047, 31, 17, 127, 65, 16),
     ]
     return shapes
 
