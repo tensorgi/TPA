@@ -143,7 +143,7 @@ def _tpa_decode_parallel_b(
         score2 = tl.dot(score1, _sigmoid(aq))
         # M H, M H -> N H
         score3 = score2 * _sigmoid(ak) * c
-
+        score3 = tl.where(mask_m[:, None] & mask_h[None, :], score3, -float("inf"))
         # safe softmax
         # local attention
         # M H -> H
@@ -274,7 +274,7 @@ def _tpa_decode_parallel_bh(
         score2 = tl.sum(score1 * _sigmoid(aq), axis=1)
         # M, M -> M
         score3 = score2 * _sigmoid(ak) * c
-
+        score3 = tl.where(mask_m[:], score3, -float("inf"))
         # safe softmax
         # local attention
         # M -> 1
@@ -420,7 +420,7 @@ def _tpa_decode_parallel_bn(
             score2 = tl.dot(score1, _sigmoid(aq))
             # M H, M H -> N H
             score3 = score2 * _sigmoid(ak) * c
-
+            score3 = tl.where(mask_m[:, None] & mask_h[None, :], score3, -float("inf"))
             # safe softmax
             # local attention
             # M H -> H

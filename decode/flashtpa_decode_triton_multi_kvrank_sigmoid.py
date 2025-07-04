@@ -145,6 +145,7 @@ def _tpa_decode_parallel_b(
             score2 = tl.dot(score1, aq)
             # M H, M H -> N H
             score3 += score2 * ak * c
+            score3 = tl.where(mask_m[:, None] & mask_h[None, :], score3, -float("inf"))
             ak_block_ptr += M * H
             bk_block_ptr += M * D
             
@@ -290,6 +291,7 @@ def _tpa_decode_parallel_bh(
             score2 = tl.sum(score1 * aq, axis=1)
             # M, M -> M
             score3 += score2 * ak * c
+            score3 = tl.where(mask_m[:], score3, -float("inf"))
             ak_block_ptr += M * H
             bk_block_ptr += M * D
         # safe softmax
@@ -447,6 +449,7 @@ def _tpa_decode_parallel_bn(
                 score2 = tl.dot(score1, aq)
                 # M H, M H -> N H
                 score3 += score2 * ak * c
+                score3 = tl.where(mask_m[:, None] & mask_h[None, :], score3, -float("inf"))
                 ak_block_ptr += M * H
                 bk_block_ptr += M * D
 
