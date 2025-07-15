@@ -10,7 +10,7 @@ This repository contains the official code for the paper "[Tensor Product Attent
 
 Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao)
 
-[[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
+[[Webpage](https://tensorgi.github.io/TPA)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
 
 ## Table of Contents
 
