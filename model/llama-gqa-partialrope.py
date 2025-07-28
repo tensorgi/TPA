@@ -177,7 +177,7 @@ class GPTConfig(PretrainedConfig):
 	n_embd : int = 768
 	group_size: int = 4
 	head_dim: int = 64  # Dimension per head
-	rope_partial_factor: float = 0.5 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
+	rope_partial_factor: float = 1.0/3 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
 	block_size: int = 1024  # Maximum sequence length
 	bias: bool = False  # Use bias in all linear layers
 	dropout: float = 0.0  # Dropout rate
