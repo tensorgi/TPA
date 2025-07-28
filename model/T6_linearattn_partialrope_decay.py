@@ -309,7 +309,7 @@ class GPTConfig(PretrainedConfig):
     bias: bool = False  # Use bias in all linear layers
     dropout: float = 0.0  # Dropout rate
     scale_attn_by_inverse_layer_idx: bool = False  # Scale attention by 1/sqrt(layer_idx)
-    using_groupnorm: bool = False  # Whether to use Group Layernorm
+    using_groupnorm: bool = True  # Whether to use Group Layernorm
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
