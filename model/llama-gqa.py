@@ -160,7 +160,7 @@ class GPTConfig(PretrainedConfig):
     n_embd : int = 768
     q_rank: int = 1 # Q rank
     rank: int = 1  # CP rank
-    group_size: int = 11
+    group_size: int = 4
     head_dim: int = 64  # Dimension per head
     block_size: int = 1024  # Maximum sequence length
     bias: bool = False  # Use bias in all linear layers
