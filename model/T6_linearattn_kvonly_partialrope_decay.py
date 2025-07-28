@@ -1,0 +1,408 @@
+# T6-KVonly using LinearAttention, SwiGLU, RMSNorm, and Partial RoPE with Decay
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+from dataclasses import dataclass
+import numpy as np
+from transformers import PreTrainedModel
+from transformers.configuration_utils import PretrainedConfig
+from transformers.modeling_utils import PreTrainedModel
+
+class RMSNorm(nn.Module):
+	def __init__(self, dim: int, eps: float = 1e-6, elementwise_affine=True, memory_efficient=False):
+		super().__init__()
+		self.dim = dim
+		self.eps = eps
+		self.elementwise_affine = elementwise_affine
+		if self.elementwise_affine:
+			self.weight = nn.Parameter(torch.ones(dim))
+		else:
+			self.register_parameter('weight', None)
+
+	def _norm(self, x):
+		return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+
+	def forward(self, x):
+		output = self._norm(x.float()).type_as(x)
+		if self.weight is not None:
+			output = output * self.weight
+		return output
+
+	def extra_repr(self) -> str:
+		return f'dim={self.dim}, eps={self.eps}, elementwise_affine={self.elementwise_affine}'
+
+class RotaryDecay(torch.nn.Module):
+
+	def __init__(self, dim, base=1e4, decay_base=0.999):
+		"""
+		Initializes the Rotary Position Embedding (RoPE) with Decay module.
+
+		Args:
+			dim (int): The feature dimension to which RoPE is applied.
+			base (float): The base period for the rotary embeddings.
+			decay_base (float): The base for calculating the positional decay.
+		"""
+		super().__init__()
+		# Calculate the inverse frequencies, which is the core of RoPE.
+		# This determines the rotation speed for each dimension pair.
+		self.inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+		self.decay_base = decay_base
+		
+		# Cache variables to avoid redundant calculations on every forward pass.
+		self.seq_len_cached = None
+		self.cos_cached = None
+		self.sin_cached = None
+		self.decay_cached = None
+
+	def forward(self, x):
+		"""
+		Forward pass to compute and return cosine, sine, and decay tensors.
+		"""
+		# Get the sequence length from the input tensor.
+		seq_len = x.shape[1]
+		
+		# Only recompute the tensors if the sequence length has changed.
+		if seq_len != self.seq_len_cached:
+			self.seq_len_cached = seq_len
+			
+			# Create position indices: t = [0, 1, ..., seq_len-1]
+			t = torch.arange(seq_len, device=x.device)
+			
+			# Use outer product to compute frequencies for each position and dimension.
+			# `freqs` will have a shape of (seq_len, dim / 2).
+			freqs = torch.outer(t.type_as(self.inv_freq), self.inv_freq)
+
+			# The core of RoPE: compute cosine and sine values.
+			# Reshape to (1, seq_len, 1, dim / 2) to enable broadcasting.
+			self.cos_cached = freqs.cos()[None, :, None, :]
+			self.sin_cached = freqs.sin()[None, :, None, :]
+
+			# Calculate the decay factor.
+			# The logic is: decay = decay_base ^ freqs = decay_base ^ (t / base^(2i/d))
+			# This makes the decay rate dependent on both position `t` and rotation frequency `i`.
+			# We use log and exp for a numerically stable calculation: exp(freqs * log(decay_base)).
+			log_decay_base = torch.log(torch.tensor(self.decay_base, device=freqs.device, dtype=freqs.dtype))
+			decay_matrix = freqs * log_decay_base
+			self.decay_cached = decay_matrix.exp()[None, :, None, :]
+
+		# Return the cached values, ensuring the data type matches the input tensor `x`.
+		return (
+			self.cos_cached.to(x.dtype),
+			self.sin_cached.to(x.dtype),
+			self.decay_cached.to(x.dtype)
+		)
+
+def apply_rotary_emb(x, cos, sin, decay):
+	# This function implements partial rotary embedding. It rotates a fraction of the features.
+	# The dimension to rotate is inferred from the shape of the cosine matrix.
+	rotary_dim = cos.shape[-1] * 2
+	
+	# Split the input tensor x into the part to be rotated and the part to be passed through.
+	x_rot = x[..., :rotary_dim]
+	x_pass = x[..., rotary_dim:]
+	
+	# Split the rotary part into two halves for complex number multiplication.
+	d_rot_half = x_rot.shape[-1] // 2
+	x1 = x_rot[..., :d_rot_half]
+	x2 = x_rot[..., d_rot_half:]
+	
+	# Apply the rotation and decay.
+	y1 = (x1 * cos + x2 * sin) * decay
+	y2 = (x1 * (-sin) + x2 * cos) * decay
+	y_rot = torch.cat([y1, y2], dim=-1)
+	
+	# Concatenate the rotated part with the pass-through part and return.
+	return torch.cat([y_rot, x_pass], dim=-1).type_as(x)
+
+class CPLinear(nn.Module):
+	# Bilinear form of x using CP decomposition
+	def __init__(self, config):
+		super(CPLinear, self).__init__()
+		self.in_features = config.n_embd
+		self.n_head = config.n_head
+		self.head_dim = config.head_dim
+		self.rank = config.rank
+		self.q_rank = config.q_rank
+		self.rope_partial_factor = config.rope_partial_factor
+
+		self.c_q = nn.Linear(self.in_features, self.n_head * self.head_dim, bias=False)
+
+		# Define linear transformations for A projections
+		self.W_A_k = nn.Linear(self.in_features, self.n_head * self.rank, bias=False)
+		self.W_A_v = nn.Linear(self.in_features, self.n_head * self.rank, bias=False)
+
+		# Define B projection parameters for K, V
+		self.W_B_k = nn.Linear(self.in_features, self.rank * self.head_dim, bias=False)
+		self.W_B_v = nn.Linear(self.in_features, self.rank * self.head_dim, bias=False)
+		# Calculate the dimension for RoPE based on the partial factor
+		rotary_dim = int(self.head_dim * self.rope_partial_factor)
+		# Ensure the rotary dimension is even
+		rotary_dim = (rotary_dim // 2) * 2
+		self.rotary = RotaryDecay(rotary_dim, decay_base=config.rope_decay_base)
+		self.reset_parameters()
+
+	def reset_parameters(self):
+		W_A_k_tensor = self.W_A_k.weight.view(self.in_features, self.n_head, self.rank)
+		W_A_v_tensor = self.W_A_v.weight.view(self.in_features, self.n_head, self.rank)
+		nn.init.xavier_uniform_(W_A_k_tensor)
+		nn.init.xavier_uniform_(W_A_v_tensor)
+		self.W_A_k.weight.data = W_A_k_tensor.view_as(self.W_A_k.weight)
+		self.W_A_v.weight.data = W_A_v_tensor.view_as(self.W_A_v.weight)
+
+		W_B_k_tensor = self.W_B_k.weight.view(self.in_features, self.rank, self.head_dim)
+		W_B_v_tensor = self.W_B_v.weight.view(self.in_features, self.rank, self.head_dim)
+		nn.init.xavier_uniform_(W_B_k_tensor)
+		nn.init.xavier_uniform_(W_B_v_tensor)
+		self.W_B_k.weight.data = W_B_k_tensor.view_as(self.W_B_k.weight)
+		self.W_B_v.weight.data = W_B_v_tensor.view_as(self.W_B_v.weight)
+		
+		nn.init.xavier_uniform_(self.c_q.weight)
+
+	def forward(self, x):
+		batch_size, seq_len, _ = x.size()
+
+		q = self.c_q(x).view(batch_size, seq_len, self.n_head, self.head_dim)
+
+		# Compute intermediate variables A for K, and V
+		A_k = self.W_A_k(x).view(batch_size, seq_len, self.n_head, self.rank)
+		A_v = self.W_A_v(x).view(batch_size, seq_len, self.n_head, self.rank)
+
+		# Compute intermediate variables B for K, and V
+		B_k = self.W_B_k(x).view(batch_size, seq_len, self.rank, self.head_dim)
+		B_v = self.W_B_v(x).view(batch_size, seq_len, self.rank, self.head_dim)
+		# Apply rotary embeddings
+		cos, sin, decay = self.rotary(q)
+		# q, k = F.rms_norm(q, (q.size(-1),)), F.rms_norm(k, (k.size(-1),)) # QK rms norm
+		q, B_k = apply_rotary_emb(q, cos, sin, decay), apply_rotary_emb(B_k, cos, sin, decay)
+		# Reshape A_k, A_v
+		A_k = A_k.view(batch_size * seq_len, self.n_head, self.rank)
+		A_v = A_v.view(batch_size * seq_len, self.n_head, self.rank)
+
+		# Reshape B_k, B_v  
+		B_k = B_k.view(batch_size * seq_len, self.rank, self.head_dim)
+		B_v = B_v.view(batch_size * seq_len, self.rank, self.head_dim)
+		
+		k = torch.bmm(A_k, B_k).div_(self.rank).view(batch_size, seq_len, self.n_head, self.head_dim)
+		v = torch.bmm(A_v, B_v).div_(self.rank).view(batch_size, seq_len, self.n_head, self.head_dim)
+
+		return q, k, v
+
+class CausalSelfAttention(nn.Module):
+	def __init__(self, config):
+		super().__init__()
+		self.n_head = config.n_head
+		self.head_dim = config.head_dim
+		self.n_embd = config.n_embd  # Fixed embedding dimension
+		self.rank = config.rank
+		self.q_rank = config.q_rank
+
+		# CPLinear projections directly output multi-head dimensions
+		self.c_qkv = CPLinear(config)
+
+		# Output projection from (n_head * head_dim) back to n_embd
+		self.c_proj = nn.Linear(self.n_head * self.head_dim, self.n_embd, bias=False)
+		self.c_proj.weight.data.zero_()
+		
+		
+		# Add group norm
+		self.using_groupnorm = getattr(config, 'using_groupnorm', False)
+		if self.using_groupnorm:
+			# Apply RMSNorm to each head's output dimension
+			self.subln = RMSNorm(self.head_dim, eps=1e-5, elementwise_affine=True)
+
+	def forward(self, x):
+		B, T, C = x.size()  # (batch_size, seq_length, n_embd)
+
+		# Project inputs to queries, keys, and values directly with multi-head shape
+		q, k, v = self.c_qkv(x)  # Each has shape (B, T, n_head, head_dim)
+
+    # Transpose for head-wise processing -> (B, H, T, D)
+    q = q.transpose(1, 2)
+    k = k.transpose(1, 2)
+    v = v.transpose(1, 2)
+
+    # Compute O(T^2) attention scores via matrix multiplication
+    scores = torch.matmul(q, k.transpose(-2, -1))
+
+    # Apply causal mask to zero out future positions
+    causal_mask = torch.triu(torch.ones(T, T, device=q.device, dtype=torch.bool), diagonal=1)
+    scores = scores.masked_fill(causal_mask, 0.0)
+		
+    # Apply attention scores (weights) to values without normalization
+    y = torch.matmul(scores, v)
+		
+		if self.using_groupnorm:
+			# Apply RMSNorm directly to each head's output
+			y = self.subln(y)
+		
+		y = y.transpose(1, 2).contiguous().view(B, T, self.n_head * self.head_dim)
+		y = self.c_proj(y)
+		return y
+
+class MLP(nn.Module):
+
+	def __init__(self, config):
+		super().__init__()
+		# Calculate the floored hidden dimension size
+		hidden_dim = math.floor(8 / 3 * config.n_embd)
+
+		# Split the linear projection into two parts for SwiGLU
+		self.c_fc1 = nn.Linear(config.n_embd, hidden_dim, bias=False)
+		self.c_fc2 = nn.Linear(config.n_embd, hidden_dim, bias=False)
+
+		# Output projection
+		self.c_proj = nn.Linear(hidden_dim, config.n_embd, bias=False)
+		self.c_proj.weight.data.zero_()  # zero init suggested by @Grad62304977
+
+	def forward(self, x):
+		# Apply the first linear layer to produce two projections
+		x1 = self.c_fc1(x)
+		x2 = self.c_fc2(x)
+
+		# Apply the SwiGLU gating: SILU on one projection, and gate with the other
+		x = F.silu(x1) * x2
+
+		# Apply the final output projection
+		x = self.c_proj(x)
+		return x
+
+class Block(nn.Module):
+
+	def __init__(self, config):
+		super().__init__()
+		self.attn = CausalSelfAttention(config)
+		self.mlp = MLP(config)
+
+	def forward(self, x):
+		x = x + self.attn(F.rms_norm(x, (x.size(-1),)))
+		x = x + self.mlp(F.rms_norm(x, (x.size(-1),)))
+		return x
+
+# -----------------------------------------------------------------------------
+# The main GPT-2 model
+
+@dataclass
+class GPTConfig(PretrainedConfig):
+	model_type = "gpt2"  
+	vocab_size: int = 50304
+	n_layer: int = 12
+	n_head: int = 22  # Number of attention heads
+	head_dim: int = 64  # Dimension per head
+	n_embd: int = 768  # Fixed embedding dimension
+	rope_decay_base: float = 0.999
+	rope_partial_factor: float = 1.0/3 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
+	rank: int = 2  # CP rank for key and value
+	q_rank: int = 6  # CP rank for query
+	block_size: int = 1024  # Maximum sequence length
+	bias: bool = False  # Use bias in all linear layers
+	dropout: float = 0.0  # Dropout rate
+	scale_attn_by_inverse_layer_idx: bool = False  # Scale attention by 1/sqrt(layer_idx)
+	using_groupnorm: bool = False  # Whether to use Group Layernorm
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+
+class GPT(PreTrainedModel):
+	config_class = GPTConfig
+	base_model_prefix = "gpt2"
+	supports_gradient_checkpointing = True
+
+	def __init__(self, config):
+		# if self is not a subclass of PreTrainedModel, then we need to call super().__init__()
+		# else we can just call super().__init__(config) to handle the config argument
+		if not isinstance(self, PreTrainedModel):
+			super().__init__()
+		else:
+			super().__init__(config)
+		self.config = config
+
+		self.transformer = nn.ModuleDict(dict(
+			wte=nn.Embedding(config.vocab_size, config.n_embd),
+			h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+		))
+		self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
+		self.transformer.wte.weight = self.lm_head.weight  # Weight tying
+
+	def forward(self, idx, targets=None, return_logits=True, output_all_seq=False):
+
+		# forward the GPT model itself
+		x = self.transformer.wte(idx)  # token embeddings of shape (b, t, n_embd)
+		for block in self.transformer.h:
+			x = block(x)
+		x = F.rms_norm(x, (x.size(-1),))
+
+		if targets is not None:
+			# if we are given some desired targets also calculate the loss
+			logits = self.lm_head(x)
+			logits = logits.float()  # use tf32/fp32 for logits
+			loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+		elif output_all_seq:
+			logits = self.lm_head(x[:, :, :]) # note: using list [-1] to preserve the time dim
+			loss = None
+		else:
+			# inference-time mini-optimization: only forward the lm_head on the very last position
+			logits = self.lm_head(x[:, [-1], :])  # note: using list [-1] to preserve the time dim
+			logits = logits.float()  # use tf32/fp32 for logits
+			loss = None
+
+		# there are performance reasons why not returning logits is prudent, if not needed
+		if not return_logits:
+			logits = None
+
+		return logits, loss
+	
+	
+	def crop_block_size(self, block_size):
+		# model surgery to decrease the block size if necessary
+		# e.g. we may load the GPT2 pretrained model checkpoint (block size 1024)
+		# but want to use a smaller block size for some smaller, simpler model
+		# assert block_size <= self.config.block_size
+		# self.config.block_size = block_size
+		# self.transformer.wpe.weight = nn.Parameter(self.transformer.wpe.weight[:block_size])
+		# for block in self.transformer.h:
+		# 	 block.attn.bias = block.attn.bias[:,:,:block_size,:block_size]
+		pass
+				
+	def estimate_mfu(self, fwdbwd_per_iter, dt):
+		""" estimate model flops utilization (MFU) in units of A100 bfloat16 peak FLOPS """
+		# first estimate the number of flops we do per iteration.
+		# see PaLM paper Appendix B as ref: https://arxiv.org/abs/2204.02311
+		N = self.get_num_params()
+		cfg = self.config
+		L, H, Q, T = cfg.n_layer, cfg.n_head, cfg.n_embd//cfg.n_head, cfg.block_size
+		flops_per_token = 6*N + 12*L*H*Q*T
+		flops_per_fwdbwd = flops_per_token * T
+		flops_per_iter = flops_per_fwdbwd * fwdbwd_per_iter
+		# express our flops throughput as ratio of A100 bfloat16 peak flops
+		flops_achieved = flops_per_iter * (1.0/dt) # per second
+		flops_promised = 312e12 # A100 GPU bfloat16 peak flops is 312 TFLOPS
+		mfu = flops_achieved / flops_promised
+		return mfu
+	def get_num_params(self, non_embedding=True):
+		"""
+		Return the number of parameters in the model.
+		For non-embedding count (default), the position embeddings get subtracted.
+		The token embeddings would too, except due to the parameter sharing these
+		params are actually used as weights in the final layer, so we include them.
+		"""
+		n_params = sum(p.numel() for p in self.parameters())
+		# if non_embedding:
+		# 	 n_params -= self.transformer.wpe.weight.numel()
+		# return n_params
+		return n_params
+	
+
+	
+	def save_pretrained(self, save_directory):
+		self.config.save_pretrained(save_directory)
+		super().save_pretrained(save_directory, safe_serialization=False)
+
+	@classmethod
+	def from_pretrained(cls, pretrained_model_name_or_path, *model_args, **kwargs):
+		config = kwargs.pop("config", None)
+		if config is None:
+			config = cls.config_class.from_pretrained(pretrained_model_name_or_path, **kwargs)
+		model = super().from_pretrained(pretrained_model_name_or_path, config=config, *model_args, **kwargs)
+		return model
