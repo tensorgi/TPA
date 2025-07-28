@@ -38,27 +38,63 @@ class RMSNorm(nn.Module):
 
 class RotaryDecay(torch.nn.Module):
     def __init__(self, dim, base=1e4, decay_base=0.999):
+        """
+        Initializes the Rotary Position Embedding (RoPE) with Decay module.
+
+        Args:
+            dim (int): The feature dimension to which RoPE is applied.
+            base (float): The base period for the rotary embeddings.
+            decay_base (float): The base for calculating the positional decay.
+        """
         super().__init__()
+        # Calculate the inverse frequencies, which is the core of RoPE.
+        # This determines the rotation speed for each dimension pair.
         self.inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
-        self.inv_decay_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
-        self.base = base
         self.decay_base = decay_base
+        
+        # Cache variables to avoid redundant calculations on every forward pass.
         self.seq_len_cached = None
         self.cos_cached = None
         self.sin_cached = None
         self.decay_cached = None
 
     def forward(self, x):
+        """
+        Forward pass to compute and return cosine, sine, and decay tensors.
+        """
+        # Get the sequence length from the input tensor.
         seq_len = x.shape[1]
+        
+        # Only recompute the tensors if the sequence length has changed.
         if seq_len != self.seq_len_cached:
             self.seq_len_cached = seq_len
-            t = torch.arange(seq_len, device=x.device).type_as(self.inv_freq)
-            freqs = torch.outer(t, self.inv_freq).to(x.device)
-            freqs_decay = torch.outer(t, self.inv_decay_freq).to(x.device)
-            self.cos_cached = freqs.cos().bfloat16()
-            self.sin_cached = freqs.sin().bfloat16()
-            self.decay_cached = (freqs_decay * torch.log(torch.tensor(self.decay_base, device=freqs_decay.device, dtype=freqs_decay.dtype))).exp().bfloat16()
-        return self.cos_cached[None, :, None, :], self.sin_cached[None, :, None, :], self.decay_cached[None, :, None, :]
+            
+            # Create position indices: t = [0, 1, ..., seq_len-1]
+            t = torch.arange(seq_len, device=x.device)
+            
+            # Use outer product to compute frequencies for each position and dimension.
+            # `freqs` will have a shape of (seq_len, dim / 2).
+            freqs = torch.outer(t.type_as(self.inv_freq), self.inv_freq)
+
+            # The core of RoPE: compute cosine and sine values.
+            # Reshape to (1, seq_len, 1, dim / 2) to enable broadcasting.
+            self.cos_cached = freqs.cos()[None, :, None, :]
+            self.sin_cached = freqs.sin()[None, :, None, :]
+
+            # Calculate the decay factor.
+            # The logic is: decay = decay_base ^ freqs = decay_base ^ (t / base^(2i/d))
+            # This makes the decay rate dependent on both position `t` and rotation frequency `i`.
+            # We use log and exp for a numerically stable calculation: exp(freqs * log(decay_base)).
+            log_decay_base = torch.log(torch.tensor(self.decay_base, device=freqs.device, dtype=freqs.dtype))
+            decay_matrix = freqs * log_decay_base
+            self.decay_cached = decay_matrix.exp()[None, :, None, :]
+
+        # Return the cached values, ensuring the data type matches the input tensor `x`.
+        return (
+            self.cos_cached.to(x.dtype),
+            self.sin_cached.to(x.dtype),
+            self.decay_cached.to(x.dtype)
+        )
 
 def apply_rotary_emb(x, cos, sin, decay):
     # This function implements partial rotary embedding. It rotates a fraction of the features.
