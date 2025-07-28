@@ -36,9 +36,6 @@ class RMSNorm(nn.Module):
     def extra_repr(self) -> str:
         return f'dim={self.dim}, eps={self.eps}, elementwise_affine={self.elementwise_affine}'
 
-import torch
-import torch.nn as nn
-
 class RotaryDecay(torch.nn.Module):
     def __init__(self, dim, base=1e4, decay_base=0.999):
         """
