@@ -254,7 +254,7 @@ class GPTConfig(PretrainedConfig):
     n_head: int = 22  # Number of attention heads
     head_dim: int = 64  # Dimension per head
     n_embd: int = 768  # Fixed embedding dimension
-    rope_partial_factor: float = 1.0 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
+    rope_partial_factor: float = 1.0/3 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
     rank: int = 2  # CP rank for key and value
     q_rank: int = 6  # CP rank for query
     block_size: int = 1024  # Maximum sequence length
