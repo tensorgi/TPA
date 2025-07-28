@@ -194,7 +194,7 @@ class CausalSelfAttention(nn.Module):
 		super().__init__()
 		self.n_head = config.n_head
 		self.head_dim = config.head_dim
-		self.n_embd = config.n_embd  # Fixed embedding dimension
+		self.n_embd = config.n_embd # Fixed embedding dimension
 		self.rank = config.rank
 		self.q_rank = config.q_rank
 
@@ -213,33 +213,33 @@ class CausalSelfAttention(nn.Module):
 			self.subln = RMSNorm(self.head_dim, eps=1e-5, elementwise_affine=True)
 
 	def forward(self, x):
-		B, T, C = x.size()  # (batch_size, seq_length, n_embd)
+		B, T, C = x.size() # (batch_size, seq_length, n_embd)
 
 		# Project inputs to queries, keys, and values directly with multi-head shape
-		q, k, v = self.c_qkv(x)  # Each has shape (B, T, n_head, head_dim)
+		q, k, v = self.c_qkv(x) # Each has shape (B, T, n_head, head_dim)
 
-    # Transpose for head-wise processing -> (B, H, T, D)
-    q = q.transpose(1, 2)
-    k = k.transpose(1, 2)
-    v = v.transpose(1, 2)
+        # Transpose for head-wise processing -> (B, H, T, D)
+        q = q.transpose(1, 2)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
 
-    # Compute O(T^2) attention scores via matrix multiplication
-    scores = torch.matmul(q, k.transpose(-2, -1))
+        # Compute O(T^2) attention scores via matrix multiplication
+        scores = torch.matmul(q, k.transpose(-2, -1))
 
-    # Apply causal mask to zero out future positions
-    causal_mask = torch.triu(torch.ones(T, T, device=q.device, dtype=torch.bool), diagonal=1)
-    scores = scores.masked_fill(causal_mask, 0.0)
-		
-    # Apply attention scores (weights) to values without normalization
-    y = torch.matmul(scores, v)
-		
-		if self.using_groupnorm:
-			# Apply RMSNorm directly to each head's output
-			y = self.subln(y)
-		
-		y = y.transpose(1, 2).contiguous().view(B, T, self.n_head * self.head_dim)
-		y = self.c_proj(y)
-		return y
+        # Apply causal mask to zero out future positions
+        causal_mask = torch.triu(torch.ones(T, T, device=q.device, dtype=torch.bool), diagonal=1)
+        scores = scores.masked_fill(causal_mask, 0.0)
+            
+        # Apply attention scores (weights) to values without normalization
+        y = torch.matmul(scores, v)
+            
+            if self.using_groupnorm:
+                # Apply RMSNorm directly to each head's output
+                y = self.subln(y)
+            
+            y = y.transpose(1, 2).contiguous().view(B, T, self.n_head * self.head_dim)
+            y = self.c_proj(y)
+            return y
 
 class MLP(nn.Module):
 
@@ -254,7 +254,7 @@ class MLP(nn.Module):
 
 		# Output projection
 		self.c_proj = nn.Linear(hidden_dim, config.n_embd, bias=False)
-		self.c_proj.weight.data.zero_()  # zero init suggested by @Grad62304977
+		self.c_proj.weight.data.zero_() # zero init suggested by @Grad62304977
 
 	def forward(self, x):
 		# Apply the first linear layer to produce two projections
@@ -285,20 +285,20 @@ class Block(nn.Module):
 
 @dataclass
 class GPTConfig(PretrainedConfig):
-	model_type = "gpt2"  
+	model_type = "gpt2"
 	vocab_size: int = 50304
 	n_layer: int = 12
-	n_head: int = 22  # Number of attention heads
-	head_dim: int = 64  # Dimension per head
-	n_embd: int = 768  # Fixed embedding dimension
+	n_head: int = 22 # Number of attention heads
+	head_dim: int = 64 # Dimension per head
+	n_embd: int = 768 # Fixed embedding dimension
 	rope_decay_base: float = 0.999
 	rope_partial_factor: float = 1.0/3 # The fraction of head_dim to apply RoPE to. 1.0 is full RoPE.
-	rank: int = 2  # CP rank for key and value
-	q_rank: int = 6  # CP rank for query
-	block_size: int = 1024  # Maximum sequence length
-	bias: bool = False  # Use bias in all linear layers
-	dropout: float = 0.0  # Dropout rate
-	using_groupnorm: bool = False  # Whether to use Group Layernorm
+	rank: int = 2 # CP rank for key and value
+	q_rank: int = 6 # CP rank for query
+	block_size: int = 1024 # Maximum sequence length
+	bias: bool = False # Use bias in all linear layers
+	dropout: float = 0.0 # Dropout rate
+	using_groupnorm: bool = False # Whether to use Group Layernorm
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
