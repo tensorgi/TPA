@@ -292,7 +292,7 @@ class GPT(PreTrainedModel):
 	
 	
 	def save_pretrained(self, save_directory):
-		self.config.save_ pretrained(save_directory)
+		self.config.save_pretrained(save_directory)
 		super().save_pretrained(save_directory, safe_serialization=False)
 
 	@classmethod
