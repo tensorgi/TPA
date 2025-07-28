@@ -1,5 +1,5 @@
 # For comparison
-# GPT2 using SwiGLU and RMSNorm and RoPE
+# T6 using SwiGLU and RMSNorm and RoPE
 
 import torch
 import torch.nn as nn
