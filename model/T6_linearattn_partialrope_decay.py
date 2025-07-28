@@ -226,8 +226,6 @@ class CausalSelfAttention(nn.Module):
     def forward(self, x):
         B, T, C = x.size()  # (batch_size, seq_length, n_embd)
         q, k, v = self.c_qkv(x)  # Each has shape (B, T, n_head, head_dim)
-
-        # --- Start of Power=1 Attention (Matmul version) ---
         
         # Transpose for head-wise processing -> (B, H, T, D)
         q = q.transpose(1, 2)
@@ -243,7 +241,6 @@ class CausalSelfAttention(nn.Module):
         
         # Apply attention scores (weights) to values without normalization
         y = torch.matmul(scores, v)
-        # --- End of Power=1 Attention ---
 
         if self.using_groupnorm:
             # Apply RMSNorm directly to each head's output
