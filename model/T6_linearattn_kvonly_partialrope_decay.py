@@ -322,7 +322,7 @@ class GPT(PreTrainedModel):
             h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
         ))
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
-        self.transformer.wte.weight = self.lm_head.weight  # Weight tying
+        self.transformer.wte.weight = self.lm_head.weight # Weight tying
 
     def forward(self, idx, targets=None, return_logits=True, output_all_seq=False):
 
