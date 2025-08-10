@@ -515,7 +515,7 @@ def _tpa_decode_reduce(
     x_block_ptr = (
         X + offset_x + array_num_block_m[:, None] * N * H * E + array_e[None, :]
     )  # NUM_BLOCK_M E
-    lse_block_ptr = LSE + offset_lse + array_num_block_m  # NUM_BLOCK_M
+    lse_block_ptr = LSE + offset_lse + array_num_block_m * H # NUM_BLOCK_M
     o_block_ptr = O + offset_o + array_e  # E
 
     x = tl.load(x_block_ptr, mask=mask_num_block_m[:, None] & mask_e[None, :], other=0)
