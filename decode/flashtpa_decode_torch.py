@@ -122,5 +122,5 @@ if __name__ == "__main__":
     bq = torch.randn((b, n, r, d), dtype=dtype).cuda()
     bk = torch.randn((b, n, d), dtype=dtype).cuda()
     bv = torch.randn((b, n, e), dtype=dtype).cuda()
-    o = tpa_decode_torch(aq, ak, av, bq, bk, bv)
+    o = flashtpa_decode_torch(aq, ak, av, bq, bk, bv)
     print(o.shape)

@@ -78,10 +78,10 @@ def _sigmoid(x):
 def _tpa_decode_parallel_b(
     AQ,  # B N H R
     AK,  # B S M H
-    AV,  # B S M H
+    AV,  # B S_V M H
     BQ,  # B N R D
     BK,  # B S M D
-    BV,  # B S M E
+    BV,  # B S_V M E
     ATTN_BIAS,  # N M
     O,  # B N H E
     CU_SEQLENS,  # L
@@ -97,11 +97,13 @@ def _tpa_decode_parallel_b(
     D: tl.constexpr,
     E: tl.constexpr,
     S: tl.constexpr,
+    S_V: tl.constexpr,
     BLOCK_H: tl.constexpr,
     BLOCK_R: tl.constexpr,
     BLOCK_D: tl.constexpr,
     BLOCK_E: tl.constexpr,
     BLOCK_S: tl.constexpr,
+    BLOCK_S_V: tl.constexpr,
     BLOCK: tl.constexpr,
 ):
     off_b = tl.program_id(0)
@@ -110,10 +112,10 @@ def _tpa_decode_parallel_b(
     # compute offset
     offset_aq = off_b * N * H * R + off_n * H * R
     offset_ak = off_b * M * H * S
-    offset_av = off_b * M * H * S
+    offset_av = off_b * M * H * S_V
     offset_bq = off_b * N * R * D + off_n * R * D
     offset_bk = off_b * M * D * S
-    offset_bv = off_b * M * E * S
+    offset_bv = off_b * M * E * S_V
     offset_o = off_b * N * H * E + off_n * H * E
 
     # compute block ptr and mask
@@ -178,7 +180,7 @@ def _tpa_decode_parallel_b(
                 
             p0 = tl.exp(score3 - m_) / sse_local
             o_ = o_ * 0.0  # reset o_ for each block
-            for k in range(S):
+            for k in range(S_V):
                 av = _sigmoid(tl.load(av_block_ptr, mask=mask_m[:, None] & mask_h[None, :], other=0))
                 bv = (
                     tl.load(bv_block_ptr, mask=mask_e[:, None] & mask_m[None, :], other=0)
@@ -195,9 +197,9 @@ def _tpa_decode_parallel_b(
         
 
             ak_block_ptr += BLOCK * H - M * H * S
-            av_block_ptr += BLOCK * H - M * H * S
+            av_block_ptr += BLOCK * H - M * H * S_V
             bk_block_ptr += BLOCK * D - M * D * S
-            bv_block_ptr += BLOCK * E - M * E * S
+            bv_block_ptr += BLOCK * E - M * E * S_V
             m = m_
             attn_bias_ptr += BLOCK
         else:
@@ -256,11 +258,13 @@ def _tpa_decode_parallel_bh(
     D: tl.constexpr,
     E: tl.constexpr,
     S: tl.constexpr,
+    S_V: tl.constexpr,
     BLOCK_H: tl.constexpr,
     BLOCK_R: tl.constexpr,
     BLOCK_D: tl.constexpr,
     BLOCK_E: tl.constexpr,
     BLOCK_S: tl.constexpr,
+    BLOCK_S_V: tl.constexpr,
     BLOCK: tl.constexpr,
 ):
     off_b = tl.program_id(0)
@@ -270,10 +274,10 @@ def _tpa_decode_parallel_bh(
     # compute offset
     offset_aq = off_b * N * H * R + off_h * R + off_n * H * R
     offset_ak = off_b * M * H * S + off_h
-    offset_av = off_b * M * H * S + off_h
+    offset_av = off_b * M * H * S_V + off_h
     offset_bq = off_b * N * R * D + off_n * R * D
     offset_bk = off_b * M * D * S
-    offset_bv = off_b * M * E * S
+    offset_bv = off_b * M * E * S_V
     offset_o = off_b * N * H * E + off_h * E + off_n * H * E
 
     # compute block ptr and mask
@@ -330,7 +334,7 @@ def _tpa_decode_parallel_bh(
             sse_local = tl.sum(tl.exp(score3 - m_), axis=0, keep_dims=True)
             p0 = tl.exp(score3 - m_) / sse_local
             o_ = o_ * 0.0  # reset o_ for each block
-            for k in range(S):
+            for k in range(S_V):
                 av = _sigmoid(tl.load(av_block_ptr, mask=mask_m, other=0))
                 bv = (
                     tl.load(bv_block_ptr, mask=mask_e[:, None] & mask_m[None, :], other=0)
@@ -348,9 +352,9 @@ def _tpa_decode_parallel_bh(
             o = (1 - ratio) * o + ratio * o_
 
             ak_block_ptr += BLOCK * H - M * H * S
-            av_block_ptr += BLOCK * H - M * H * S
+            av_block_ptr += BLOCK * H - M * H * S_V
             bk_block_ptr += BLOCK * D - M * D * S
-            bv_block_ptr += BLOCK * E - M * E * S
+            bv_block_ptr += BLOCK * E - M * E * S_V
             m = m_
             attn_bias_ptr += BLOCK
         else:
@@ -392,10 +396,10 @@ def _tpa_decode_parallel_bh(
 def _tpa_decode_parallel_bn(
     AQ,  # B N H R
     AK,  # B S M H
-    AV,  # B S M H
+    AV,  # B S_V M H
     BQ,  # B N R D
     BK,  # B S M D
-    BV,  # B S M E
+    BV,  # B S_V M E
     ATTN_BIAS,  # N M
     O,  # B NUM_BLOCK_M N H E
     LSE,  # B NUM_BLOCK_M H
@@ -412,11 +416,13 @@ def _tpa_decode_parallel_bn(
     D: tl.constexpr,
     E: tl.constexpr,
     S: tl.constexpr,
+    S_V: tl.constexpr,
     BLOCK_H: tl.constexpr,
     BLOCK_R: tl.constexpr,
     BLOCK_D: tl.constexpr,
     BLOCK_E: tl.constexpr,
     BLOCK_S: tl.constexpr,
+    BLOCK_S_V: tl.constexpr,
     BLOCK: tl.constexpr,
     BLOCK_M: tl.constexpr,
     NUM_BLOCK_M: tl.constexpr,
@@ -431,10 +437,10 @@ def _tpa_decode_parallel_bn(
     offset_m = off_m * BLOCK_M
     offset_aq = off_b * N * H * R + off_n * H * R
     offset_ak = off_b * M * H * S
-    offset_av = off_b * M * H * S
+    offset_av = off_b * M * H * S_V
     offset_bq = off_b * N * R * D + off_n * R * D
     offset_bk = off_b * M * D * S
-    offset_bv = off_b * M * E * S
+    offset_bv = off_b * M * E * S_V
     offset_o = off_b * NUM_BLOCK_M * N * H * E + off_m * H * E + off_n * H * E * NUM_BLOCK_M
     offset_lse = off_b * NUM_BLOCK_M * N * H + off_m * H + off_n * H * NUM_BLOCK_M
 
@@ -500,7 +506,7 @@ def _tpa_decode_parallel_bn(
                 
                 p0 = tl.exp(score3 - m_) / sse_local
                 o_ = o_ * 0.0  # reset o_ for each block
-                for k in range(S):
+                for k in range(S_V):
                     av = _sigmoid(tl.load(av_block_ptr, mask=mask_m[:, None] & mask_h[None, :], other=0))
                     bv = (
                         tl.load(bv_block_ptr, mask=mask_e[:, None] & mask_m[None, :], other=0)
@@ -515,9 +521,9 @@ def _tpa_decode_parallel_bn(
                 o = (1 - ratio) * o + ratio * o_
 
                 ak_block_ptr += BLOCK * H - M * H * S
-                av_block_ptr += BLOCK * H - M * H * S
+                av_block_ptr += BLOCK * H - M * H * S_V
                 bk_block_ptr += BLOCK * D - M * D * S
-                bv_block_ptr += BLOCK * E - M * E * S
+                bv_block_ptr += BLOCK * E - M * E * S_V
                 cnt += BLOCK
                 m = m_
                 attn_bias_ptr += BLOCK
@@ -638,10 +644,10 @@ def tpa_decode_parallel_b_triton(
     Args:
         aq: Query A tensor of shape (B, N, H, R)
         ak: Key A tensor of shape (B, M, H, S)
-        av: Value A tensor of shape (B, M, H, S)
+        av: Value A tensor of shape (B, M, H, S_V)
         bq: Query B tensor of shape (B, N, R, D)
         bk: Key B tensor of shape (B, M, D, S)
-        bv: Value B tensor of shape (B, M, E, S)
+        bv: Value B tensor of shape (B, M, E, S_V)
         cu_seqlens: Cumulative sequence lengths tensor, this is used for varlen training
 
     Returns:
@@ -651,7 +657,8 @@ def tpa_decode_parallel_b_triton(
     m = ak.shape[1]
     d = bq.shape[-1]
     e = bv.shape[-2]
-    s = ak.shape[-1]  # S is the last dimension of AK, AV, BK, BV
+    s = ak.shape[-1]  # S is the last dimension of AK, BK
+    s_v = bv.shape[-1]  # S_V is the last dimension of AV, BV
 
     if scale is None:
         scale = d**-0.5
@@ -660,7 +667,7 @@ def tpa_decode_parallel_b_triton(
     if scale_k is None:
         scale_k = 1 / s
     if scale_v is None:
-        scale_v = 1 / s
+        scale_v = 1 / s_v
 
     def grid(meta):
         return (b, n)
@@ -672,6 +679,7 @@ def tpa_decode_parallel_b_triton(
     BLOCK_D = triton.next_power_of_2(d)
     BLOCK_E = triton.next_power_of_2(e)
     BLOCK_S = triton.next_power_of_2(s)
+    BLOCK_S_V = triton.next_power_of_2(s_v)
 
     attn_bias = torch.zeros(n, m, dtype=aq.dtype, device=aq.device)
     if is_causal:
@@ -689,10 +697,10 @@ def tpa_decode_parallel_b_triton(
     _tpa_decode_parallel_b[grid](
         AQ=aq,
         AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
-        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S M H
+        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S_V M H
         BQ=bq,
         BK=bk.permute(0, 3, 1, 2).contiguous(),  # B S M D
-        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S M E
+        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S_V M E
         ATTN_BIAS=attn_bias,
         O=o,
         CU_SEQLENS=cu_seqlens,
@@ -708,11 +716,13 @@ def tpa_decode_parallel_b_triton(
         D=d,
         E=e,
         S=s,
+        S_V=s_v,
         BLOCK_H=BLOCK_H,
         BLOCK_R=BLOCK_R,
         BLOCK_D=BLOCK_D,
         BLOCK_E=BLOCK_E,
         BLOCK_S=BLOCK_S,
+        BLOCK_S_V=BLOCK_S_V,
     )
 
     return o
@@ -752,7 +762,8 @@ def tpa_decode_parallel_bh_triton(
     m = ak.shape[1]
     d = bq.shape[-1]
     e = bv.shape[-2]
-    s = ak.shape[-1]  # S is the last dimension of AK, AV, BK, BV
+    s = ak.shape[-1]  # S is the last dimension of AK, BK
+    s_v = bv.shape[-1]  # S_V is the last dimension of AV, BV
 
     if scale is None:
         scale = d**-0.5
@@ -761,7 +772,7 @@ def tpa_decode_parallel_bh_triton(
     if scale_k is None:
         scale_k = 1 / s
     if scale_v is None:
-        scale_v = 1 / s
+        scale_v = 1 / s_v
 
     def grid(meta):
         return (b, h, n)
@@ -773,6 +784,7 @@ def tpa_decode_parallel_bh_triton(
     BLOCK_D = triton.next_power_of_2(d)
     BLOCK_E = triton.next_power_of_2(e)
     BLOCK_S = triton.next_power_of_2(s)
+    BLOCK_S_V = triton.next_power_of_2(s_v)
 
     attn_bias = torch.zeros(n, m, dtype=aq.dtype, device=aq.device)
     if is_causal:
@@ -789,10 +801,10 @@ def tpa_decode_parallel_bh_triton(
     _tpa_decode_parallel_bh[grid](
         AQ=aq,
         AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
-        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S M H
+        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S_V M H
         BQ=bq,
         BK=bk.permute(0, 3, 1, 2).contiguous(),  # B S M D
-        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S M E
+        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S_V M E
         ATTN_BIAS=attn_bias,
         O=o,
         CU_SEQLENS=cu_seqlens,
@@ -808,11 +820,13 @@ def tpa_decode_parallel_bh_triton(
         D=d,
         E=e,
         S=s,
+        S_V=s_v,
         BLOCK_H=BLOCK_H,
         BLOCK_R=BLOCK_R,
         BLOCK_D=BLOCK_D,
         BLOCK_E=BLOCK_E,
         BLOCK_S=BLOCK_S,
+        BLOCK_S_V=BLOCK_S_V,
     )
 
     return o
@@ -839,10 +853,10 @@ def tpa_decode_parallel_bn_triton_v2(
     Args:
         aq: Query A tensor of shape (B, N, H, R)
         ak: Key A tensor of shape (B, M, H, S)
-        av: Value A tensor of shape (B, M, H, S)
+        av: Value A tensor of shape (B, M, H, S_V)
         bq: Query B tensor of shape (B, N, R, D)
         bk: Key B tensor of shape (B, M, D, S)
-        bv: Value B tensor of shape (B, M, E, S)
+        bv: Value B tensor of shape (B, M, E, S_V)
         cu_seqlens: Cumulative sequence lengths tensor, this is used for varlen training
 
     Returns:
@@ -852,7 +866,8 @@ def tpa_decode_parallel_bn_triton_v2(
     m = ak.shape[1]
     d = bq.shape[-1]
     e = bv.shape[-2]
-    s = ak.shape[-1]  # S is the last dimension of AK, AV, BK, BV
+    s = ak.shape[-1]  # S is the last dimension of AK, BK
+    s_v = bv.shape[-1]  # S_V is the last dimension of AV, BV
 
     if scale is None:
         scale = d**-0.5
@@ -861,7 +876,7 @@ def tpa_decode_parallel_bn_triton_v2(
     if scale_k is None:
         scale_k = 1 / s
     if scale_v is None:
-        scale_v = 1 / s
+        scale_v = 1 / s_v
 
     if b <= 16:
         BLOCK_M = 512
@@ -881,6 +896,8 @@ def tpa_decode_parallel_bn_triton_v2(
     BLOCK_D = triton.next_power_of_2(d)
     BLOCK_E = triton.next_power_of_2(e)
     BLOCK_S = triton.next_power_of_2(s)
+    BLOCK_S_V = triton.next_power_of_2(s_v)
+    
     attn_bias = torch.zeros(n, m, dtype=aq.dtype, device=aq.device)
     if is_causal:
         assert attn_mask is None
@@ -916,11 +933,13 @@ def tpa_decode_parallel_bn_triton_v2(
         D=d,
         E=e,
         S=s,
+        S_V=s_v,
         BLOCK_R=BLOCK_R,
         BLOCK_D=BLOCK_D,
         BLOCK_E=BLOCK_E,
         BLOCK_M=BLOCK_M,
         BLOCK_S=BLOCK_S,
+        BLOCK_S_V=BLOCK_S_V,
         NUM_BLOCK_M=NUM_BLOCK_M,
     )
 
@@ -969,10 +988,10 @@ def tpa_decode_naive_torch(
     Args:
         aq: Query A tensor of shape (B, N, H, R)
         ak: Key A tensor of shape (B, M, H, S)
-        av: Value A tensor of shape (B, M, H, S)
+        av: Value A tensor of shape (B, M, H, S_V)
         bq: Query B tensor of shape (B, N, R, D)
         bk: Key B tensor of shape (B, M, D, S)
-        bv: Value B tensor of shape (B, M, E, S)
+        bv: Value B tensor of shape (B, M, E, S_V)
         cu_seqlens: Cumulative sequence lengths tensor, this is used for varlen training
 
     Returns:
@@ -980,7 +999,8 @@ def tpa_decode_naive_torch(
     """
     b, n, h, r = aq.shape
     d = bq.shape[-1]
-    s = ak.shape[-1]  # S is the last dimension of AK, AV, BK, BV
+    s = ak.shape[-1]  # S is the last dimension of AK, BK
+    s_v = bv.shape[-1]  # S_V is the last dimension of AV, BV
     e = bv.shape[-2]
     m = ak.shape[1]
 
@@ -991,7 +1011,7 @@ def tpa_decode_naive_torch(
     if scale_k is None:
         scale_k = 1 / s
     if scale_v is None:
-        scale_v = 1 / s
+        scale_v = 1 / s_v
 
     q = torch.einsum("b n h r, b n r d -> b n h d", torch.sigmoid(aq), bq) * scale_q
     k = torch.einsum("b m h s, b m d s-> b m h d", torch.sigmoid(ak), bk) * scale_k
@@ -1037,10 +1057,10 @@ def tpa_decode_torch(
     Args:
         aq: Query A tensor of shape (B, N, H, R)
         ak: Key A tensor of shape (B, M, H, S)
-        av: Value A tensor of shape (B, M, H, S)
+        av: Value A tensor of shape (B, M, H, S_V)
         bq: Query B tensor of shape (B, N, R, D)
         bk: Key B tensor of shape (B, M, D, S)
-        bv: Value B tensor of shape (B, M, E, S)
+        bv: Value B tensor of shape (B, M, E, S_V)
         cu_seqlens: Cumulative sequence lengths tensor, this is used for varlen training
 
     Returns:
@@ -1048,7 +1068,8 @@ def tpa_decode_torch(
     """
     b, n, h, r = aq.shape
     d = bq.shape[-1]
-    s = ak.shape[-1]  # S is the last dimension of AK, AV, BK, BV
+    s = ak.shape[-1]  # S is the last dimension of AK, BK
+    s_v = bv.shape[-1]  # S_V is the last dimension of AV, BV
     e = bv.shape[-2]
     m = ak.shape[1]
 
@@ -1059,7 +1080,7 @@ def tpa_decode_torch(
     if scale_k is None:
         scale_k = 1 / s
     if scale_v is None:
-        scale_v = 1 / s
+        scale_v = 1 / s_v
 
     # equivant to compute (q * k ^ T)
     score1 = torch.einsum("b n r d, b m d s -> b n m r s", bq, bk)
@@ -1093,13 +1114,14 @@ if __name__ == "__main__":
     d = 128
     e = 64
     s = 4
+    s_v = 4
     dtype = torch.bfloat16
     aq = torch.randn((b, n, h, r), dtype=dtype).cuda()
     ak = torch.randn((b, m, h, s), dtype=dtype).cuda()
-    av = torch.randn((b, m, h, s), dtype=dtype).cuda()
+    av = torch.randn((b, m, h, s_v), dtype=dtype).cuda()
     bq = torch.randn((b, n, r, d), dtype=dtype).cuda()
     bk = torch.randn((b, m, d, s), dtype=dtype).cuda()
-    bv = torch.randn((b, m, e, s), dtype=dtype).cuda()
+    bv = torch.randn((b, m, e, s_v), dtype=dtype).cuda()
 
     # attn_mask = torch.full((n, m), True, dtype=torch.bool).to(aq.device)
     # attn_mask = None
