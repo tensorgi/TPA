@@ -521,18 +521,18 @@ def _tpa_decode_parallel_bn(
                 ratio = sse_local / sse
                 o = (1 - ratio) * o + ratio * o_
 
-                ak_block_ptr += BLOCK * H - M * H * S
-                av_block_ptr += BLOCK * H - M * H * S_V
-                bk_block_ptr += BLOCK * D - M * D * S
-                bv_block_ptr += BLOCK * E - M * E * S_V
+                ak_block_ptr += BLOCK * H * S - S
+                av_block_ptr += BLOCK * H * S_V - S_V
+                bk_block_ptr += BLOCK * D * S - S
+                bv_block_ptr += BLOCK * E * S_V - S_V
                 cnt += BLOCK
                 m = m_
                 attn_bias_ptr += BLOCK
             else:
-                ak_block_ptr += BLOCK * H
-                av_block_ptr += BLOCK * H
-                bk_block_ptr += BLOCK * D
-                bv_block_ptr += BLOCK * E
+                ak_block_ptr += BLOCK * H * S
+                av_block_ptr += BLOCK * H * S_V
+                bk_block_ptr += BLOCK * D * S
+                bv_block_ptr += BLOCK * E * S_V
                 cnt += BLOCK
                 attn_bias_ptr += BLOCK
 
@@ -697,11 +697,11 @@ def tpa_decode_parallel_b_triton(
             
     _tpa_decode_parallel_b[grid](
         AQ=aq,
-        AK=ak,  # B M H S
-        AV=av,  # B M H S_V
+        AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
+        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S_V M H
         BQ=bq,
-        BK=bk,  # B M D S
-        BV=bv,  # B M E S_V
+        BK=bk.permute(0, 3, 1, 2).contiguous(),  # B S M D
+        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S_V M E
         ATTN_BIAS=attn_bias,
         O=o,
         CU_SEQLENS=cu_seqlens,
@@ -913,11 +913,11 @@ def tpa_decode_parallel_bn_triton_v2(
             attn_bias = attn_mask + attn_bias
     _tpa_decode_parallel_bn[grid](
         AQ=aq,
-        AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
-        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S M H
+        AK=ak,  # B M H S
+        AV=av,  # B M H S_V
         BQ=bq,
-        BK=bk.permute(0, 3, 1, 2).contiguous(),  # B S M D
-        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S M E
+        BK=bk,  # B M D S
+        BV=bv,  # B M E S_V
         ATTN_BIAS=attn_bias,
         O=o_,
         LSE=lse,
