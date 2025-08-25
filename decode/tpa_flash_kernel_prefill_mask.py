@@ -457,11 +457,11 @@ def _tpa_decode_parallel_bn(
     mask_e = array_e < E
 
     aq_block_ptr = AQ + offset_aq + array_h[None, :] * R + array_r[:, None]  # R H
-    ak_block_ptr = AK + offset_ak + array_m[:, None] * H + array_h[None, :]  # M H
-    av_block_ptr = AV + offset_av + array_m[:, None] * H + array_h[None, :]  # M H
+    ak_block_ptr = AK + offset_ak + array_m[:, None] * H * S + array_h[None, :] * S  # M H
+    av_block_ptr = AV + offset_av + array_m[:, None] * H * S_V + array_h[None, :] * S_V  # M H
     bq_block_ptr = BQ + offset_bq + array_r[None, :] * D + array_d[:, None]  # D R
-    bk_block_ptr = BK + offset_bk + array_m[:, None] * D + array_d[None, :]  # M D
-    bv_block_ptr = BV + offset_bv + array_m[None, :] * E + array_e[:, None]  # E M
+    bk_block_ptr = BK + offset_bk + array_m[:, None] * D * S + array_d[None, :] * S # M D
+    bv_block_ptr = BV + offset_bv + array_m[None, :] * E * S_V + array_e[:, None] * S_V # E M
     attn_bias_ptr = ATTN_BIAS + off_n * M  + array_m[:]  # M
 
     cnt = offset_m
@@ -493,8 +493,9 @@ def _tpa_decode_parallel_bn(
                     score2 = tl.dot(score1, aq)
                     # M H, M H -> N H
                     score3 += score2 * ak * c + attn_bias
-                    ak_block_ptr += M * H
-                    bk_block_ptr += M * D
+                    score3 = tl.where(mask_m[:, None] & mask_h[None, :], score3, -float("inf"))
+                    ak_block_ptr += 1
+                    bk_block_ptr += 1
 
                 # safe softmax
                 # local attention
@@ -696,11 +697,11 @@ def tpa_decode_parallel_b_triton(
             
     _tpa_decode_parallel_b[grid](
         AQ=aq,
-        AK=ak.permute(0, 3, 1, 2).contiguous(),  # B S M H
-        AV=av.permute(0, 3, 1, 2).contiguous(),  # B S_V M H
+        AK=ak,  # B M H S
+        AV=av,  # B M H S_V
         BQ=bq,
-        BK=bk.permute(0, 3, 1, 2).contiguous(),  # B S M D
-        BV=bv.permute(0, 3, 1, 2).contiguous(),  # B S_V M E
+        BK=bk,  # B M D S
+        BV=bv,  # B M E S_V
         ATTN_BIAS=attn_bias,
         O=o,
         CU_SEQLENS=cu_seqlens,
