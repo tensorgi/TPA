@@ -514,8 +514,8 @@ def _tpa_decode_parallel_bn(
                     )
                     # E M, M H -> E H
                     o_ += tl.dot(bv.to(p0.dtype), p0 * av * SCALE_V)
-                    av_block_ptr += M * H
-                    bv_block_ptr += M * E
+                    av_block_ptr += 1
+                    bv_block_ptr += 1
                 # update
                 sse = tl.exp(m - m_) * sse + sse_local
                 ratio = sse_local / sse
