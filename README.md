@@ -13,6 +13,7 @@ Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.
 [[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
 
 ## 🔔 NEWS
+- **[09/18/2025]** Our paper is accepted as **NeurIPS 2025 spotlight**!
 - **[07/04/2025]** The **prefilling code** for **FlashTPA** is available.
 - **[06/13/2025]** The **decoding code** for **FlashTPA** is available.
 - **[05/29/2025]** Our paper is updated on ArXiv for FlashTPA Decoding: https://arxiv.org/abs/2501.06425.
