@@ -1,16 +1,24 @@
-# T6: Tensor ProducT ATTenTion Transformer
+# TPA: Tensor ProducT ATTenTion Transformer (T6)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.4.0-orange.svg)
 
-T6 (**Tensor ProducT ATTenTion Transformer**) is a state-of-the-art transformer model that leverages Tensor Product Attention (TPA) mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
+**Tensor ProducT ATTenTion (TPA) Transformer** (T6) is a state-of-the-art transformer model that leverages Tensor Product Attention (TPA) mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
 
 This repository contains the official code for the paper "[Tensor Product Attention Is All You Need](https://arxiv.org/abs/2501.06425)".
 
 Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao)
 
 [[Webpage](https://tensorgi.github.io/TPA)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
+
+## 🔔 NEWS
+- **[09/18/2025]** Our paper is accepted as **NeurIPS 2025 spotlight**!
+- **[07/04/2025]** The **prefilling code** for **FlashTPA** is available.
+- **[06/13/2025]** The **decoding code** for **FlashTPA** is available.
+- **[05/29/2025]** Our paper is updated on ArXiv for FlashTPA Decoding: https://arxiv.org/abs/2501.06425.
+- **[01/11/2025]** Our code is open-sourced!
+- **[01/11/2025]** Our paper is released on arXiv: https://arxiv.org/abs/2501.06425.
 
 ## Table of Contents
 
@@ -46,8 +54,8 @@ Ensure you have Python 3.10 or higher installed. It's recommended to use a virtu
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/tensorgi/T6.git
-   cd T6
+   git clone https://github.com/tensorgi/TPA.git
+   cd TPA
    ```
 2. **Create and Activate a Virtual Environment**
 
@@ -96,7 +104,7 @@ OpenWebText is an open reproduction of OpenAI's WebText dataset.
    python data/openwebtext/prepare.py
    ```
 
-   *Ensure you have sufficient storage and computational resources as OpenWebText is sizable.*
+   *Ensure you have sufficient storage and computational resources, as OpenWebText is sizable.*
 
 ## Pretraining
 
@@ -104,7 +112,7 @@ Pretrain the T6 model using the prepared datasets. The provided scripts support 
 
 1. **Using the Provided Bash Script**
 
-   Execute the pretraining script which handles the training process.
+   Execute the pretraining script, which handles the training process.
 
    ```bash
    bash pretrain.sh
@@ -143,7 +151,7 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/T6&type=Date)](https://star-history.com/#tensorgi/T6&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/TPA&type=Date)](https://star-history.com/#tensorgi/TPA&Date)
 
 ## Citation
 
