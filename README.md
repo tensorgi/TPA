@@ -10,7 +10,7 @@ This repository contains the official code for the paper "[Tensor Product Attent
 
 Authors: [Yifan Zhang](https://yifzhang.com)\*, [Yifeng Liu](https://lauyikfung.github.io)\*, [Huizhuo Yuan](https://scholar.google.com/citations?user=8foZzX4AAAAJ), [Zhen Qin](https://doraemonzzz.com), [Yang Yuan](https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en), [Quanquan Gu](https://web.cs.ucla.edu/~qgu/), [Andrew Chi-Chih Yao](https://en.wikipedia.org/wiki/Andrew_Yao)
 
-[[Webpage](https://tensorgi.github.io/T6)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
+[[Webpage](https://tensorgi.github.io/TPA)] [[Huggingface](https://huggingface.co/papers/2501.06425)]
 
 ## 🔔 NEWS
 - **[09/18/2025]** Our paper is accepted as **NeurIPS 2025 spotlight**!
@@ -54,8 +54,8 @@ Ensure you have Python 3.10 or higher installed. It's recommended to use a virtu
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/tensorgi/T6.git
-   cd T6
+   git clone https://github.com/tensorgi/TPA.git
+   cd TPA
    ```
 2. **Create and Activate a Virtual Environment**
 
@@ -104,7 +104,7 @@ OpenWebText is an open reproduction of OpenAI's WebText dataset.
    python data/openwebtext/prepare.py
    ```
 
-   *Ensure you have sufficient storage and computational resources as OpenWebText is sizable.*
+   *Ensure you have sufficient storage and computational resources, as OpenWebText is sizable.*
 
 ## Pretraining
 
@@ -112,7 +112,7 @@ Pretrain the T6 model using the prepared datasets. The provided scripts support 
 
 1. **Using the Provided Bash Script**
 
-   Execute the pretraining script which handles the training process.
+   Execute the pretraining script, which handles the training process.
 
    ```bash
    bash pretrain.sh
@@ -151,7 +151,7 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/T6&type=Date)](https://star-history.com/#tensorgi/T6&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/TPA&type=Date)](https://star-history.com/#tensorgi/TPA&Date)
 
 ## Citation
 
