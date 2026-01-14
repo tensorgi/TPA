@@ -114,7 +114,7 @@ def tpa_decode_naive_torch(
 
 
 if __name__ == "__main__":
-    b, n, h, r, d, e = 2, 512, 32, 16, 128, 64
+    b, n, h, r, d, e = 2, 1, 32, 16, 128, 64
     dtype = torch.bfloat16
     aq = torch.randn((b, n, h, r), dtype=dtype).cuda()
     ak = torch.randn((b, n, h), dtype=dtype).cuda()
