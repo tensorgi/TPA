@@ -460,7 +460,6 @@ def _tpa_decode_parallel_bn(
     key=[
         "B",
         "H",
-        "D",
         "E",
     ],
 )
