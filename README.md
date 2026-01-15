@@ -1,8 +1,10 @@
 # TPA: Tensor ProducT ATTenTion Transformer (T6)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)
+[![arXiv](https://img.shields.io/badge/arXiv-2501.06425-b31b1b.svg)](https://arxiv.org/abs/2501.06425) 
+[![Website](https://img.shields.io/badge/Project-Website-blue)](https://tensorgi.github.io/TPA) 
+![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.4.0-orange.svg)
+![License](https://img.shields.io/badge/license-MIT-yellow.svg) 
 
 **[NeurIPS 2025 Spotlight]** **Tensor ProducT ATTenTion (TPA) Transformer** (T6) is a state-of-the-art transformer model that leverages Tensor Product Attention (TPA) mechanisms to enhance performance and reduce KV cache size. This repository provides tools for data preparation, model pretraining, and evaluation to facilitate research and development using the T6 architecture.
 
