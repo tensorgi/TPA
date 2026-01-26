@@ -1,5 +1,6 @@
 # TPA: Tensor ProducT ATTenTion Transformer (T6)
 
+[![NeurIPS 2025 Spotlight](https://img.shields.io/badge/NeurIPS2025-Published-blue)](https://arxiv.org/abs/2411.18104) 
 [![arXiv](https://img.shields.io/badge/arXiv-2501.06425-b31b1b.svg)](https://arxiv.org/abs/2501.06425) 
 [![Website](https://img.shields.io/badge/Project-Website-blue)](https://tensorgi.github.io/TPA) 
 ![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)
