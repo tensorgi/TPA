@@ -161,10 +161,12 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 If you use Tensor Product Attention (TPA) or the Tensor ProducT ATTenTion Transformer (T6) in your research or application, please consider citing it!
 
 ```bibtex
-@article{zhang2025tensor,
-    title={Tensor Product Attention Is All You Need},
-    author={Zhang, Yifan and Liu, Yifeng and Yuan, Huizhuo and Qin, Zhen and Yuan, Yang and Gu, Quanquan and Yao, Andrew Chi-Chih},
-    journal={arXiv preprint arXiv:2501.06425},
-    year={2025},
+@article{zhang2026tensor,
+  title={Tensor product attention is all you need},
+  author={Zhang, Yifan and Liu, Yifeng and Yuan, Huizhuo and Qin, Zhen and Yuan, Yang and Gu, Quanquan and Yao, Andrew},
+  journal={Advances in Neural Information Processing Systems},
+  volume={38},
+  pages={112206--112251},
+  year={2026}
 }
 ```
