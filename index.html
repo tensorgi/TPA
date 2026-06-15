@@ -1,329 +1,300 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- Meta tags for social media banners, these should be filled in appropriatly as they are your "business card" -->
-  <!-- Replace the content tag with appropriate information -->
-  <meta name="description" content="T6">
-  <meta property="og:title" content="Tensor Product Attention Is All You Need"/>
-  <meta property="og:description" content="Tensor Product Attention Is All You Need. Introducing Tensor ProducT ATTenTion Transformer (T6)"/>
-  <meta property="og:url" content="https://github.com/tensorgi/T6"/>
-  
-
-  <meta name="twitter:title" content="Tensor Product Attention Is All You Need">
-  <meta name="twitter:description" content="Tensor Product Attention Is All You Need. Introducing Tensor ProducT ATTenTion Transformer (T6)">
-  <!-- Keywords for your paper to be indexed by-->
-  <meta name="keywords" content="LLM, Transformers, Attention Mechanisms, Foundation Models, Model Architectures, TPA">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TPA — Tensor Product Attention Is All You Need</title>
+  <meta name="description" content="Tensor Product Attention (TPA): a tensor-decomposition attention that compresses the KV cache 10x or more while improving quality, and the Tensor ProducT ATTenTion Transformer (T6) built on it.">
+  <meta name="citation_title" content="Tensor Product Attention Is All You Need">
+  <meta name="citation_author" content="Yifan Zhang"><meta name="citation_author" content="Yifeng Liu"><meta name="citation_author" content="Huizhuo Yuan"><meta name="citation_author" content="Zhen Qin"><meta name="citation_author" content="Yang Yuan"><meta name="citation_author" content="Quanquan Gu"><meta name="citation_author" content="Andrew Chi-Chih Yao">
+  <meta name="citation_publication_date" content="2025/01/11">
+  <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2501.06425">
+  <meta property="og:title" content="Tensor Product Attention Is All You Need"/>
+  <meta property="og:description" content="TPA compresses the KV cache 10x while improving quality; the T6 Transformer is built on it."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://tensorgi.github.io/TPA/"/>
+  <link rel="canonical" href="https://tensorgi.github.io/TPA/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230A0A0A'/%3E%3Ctext x='50' y='55' font-family='Arial,sans-serif' font-size='44' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='central'%3EYZ%3C/text%3E%3C/svg%3E" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+  <script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+    /* ===== Monochrome system (OpenAI x SpaceX) — skins existing markup ===== */
+    :root{
+      --bg:#FFFFFF; --bg-subtle:#F7F7F5; --bg-subtle-2:#EFEFEC;
+      --ink:#0A0A0A; --ink-2:#3A3A3A; --ink-3:#6B6B6B; --line:#E7E7E3;
+      --d-bg:#0A0A0A; --d-ink:#FFFFFF; --d-ink-2:rgba(255,255,255,.62);
+      --d-ink-3:rgba(255,255,255,.42); --d-line:rgba(255,255,255,.14);
+      --nav-h:68px; --maxw:1120px; --readw:1120px; --ease:cubic-bezier(.22,.61,.36,1);
+      --primary-color:#0A0A0A; --accent-color:#0A0A0A; --content-bg:#F7F7F5;
+      --border-color:#E7E7E3; --text-main:#3A3A3A; --text-on-primary:#FFFFFF;
+      --link-color:#0A0A0A; --link-hover-color:#0A0A0A; --primary-color-rgb:10,10,10; --link-color-rgb:10,10,10;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+    body{margin:0;font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;
+      text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+    a{color:inherit;text-decoration:none} img{max-width:100%;display:block} ::selection{background:var(--ink);color:var(--bg)}
+    body.nav-open{overflow:hidden}
+    .container{width:100%;max-width:var(--maxw);margin:0 auto;padding-inline:clamp(1.25rem,5vw,3rem)}
+    .section.content-section .container{max-width:var(--readw)}
+    .has-text-centered{text-align:center!important} .has-text-justified{text-align:justify}
+    .has-text-grey{color:var(--ink-3)!important} .is-italic{font-style:italic}
+    .has-text-weight-bold{font-weight:700} .has-text-weight-medium{font-weight:500}
+    .is-size-3{font-size:1.5rem} .is-size-4{font-size:1.3rem} .is-size-5{font-size:1.15rem} .is-size-6{font-size:1rem} .is-size-7{font-size:.82rem}
+    .mb-6{margin-bottom:1.5rem!important} .mt-3{margin-top:.75rem!important} .mt-5{margin-top:1.25rem!important} .mt-6{margin-top:2rem!important}
+    .my-4{margin-top:1rem!important;margin-bottom:1rem!important} .my-5{margin-top:1.5rem!important;margin-bottom:1.5rem!important}
+    .tight{margin-top:.5rem!important;margin-bottom:.75rem!important}
+    .icon{display:inline-flex;align-items:center;justify-content:center}
+    hr{border:0;border-top:1px solid var(--line);margin:1rem 0}
 
+    /* Nav */
+    .navbar{position:fixed;inset:0 0 auto 0;z-index:200;height:var(--nav-h);display:flex;align-items:center;background:transparent;
+      border-bottom:1px solid transparent;transition:background .4s var(--ease),border-color .4s var(--ease),backdrop-filter .4s var(--ease)}
+    .navbar>.container{display:flex;align-items:center;justify-content:space-between}
+    .navbar-brand{display:flex;align-items:center;position:relative;z-index:160;min-height:auto}
+    .navbar-brand .navbar-item{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:1.05rem;letter-spacing:.14em;
+      text-transform:uppercase;color:var(--d-ink);padding:0;background:transparent!important;transition:color .4s var(--ease)}
+    .navbar-menu{display:flex;box-shadow:none;background:transparent;padding:0} .navbar-end{display:flex;align-items:center;gap:1.8rem;margin-left:auto}
+    .navbar-menu .navbar-item{position:relative;font-size:.78rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--d-ink-2);padding:.25rem 0;background:transparent!important;transition:color .25s var(--ease)}
+    .navbar-menu .navbar-item::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:1px;background:currentColor;
+      transform:scaleX(0);transform-origin:left;transition:transform .3s var(--ease)}
+    .navbar-menu .navbar-item:hover{color:var(--d-ink)} .navbar-menu .navbar-item:hover::after{transform:scaleX(1)}
+    .navbar.is-scrolled{background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);
+      -webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom-color:var(--line)}
+    .navbar.is-scrolled .navbar-brand .navbar-item{color:var(--ink)}
+    .navbar.is-scrolled .navbar-menu .navbar-item{color:var(--ink-3)}
+    .navbar.is-scrolled .navbar-menu .navbar-item:hover{color:var(--ink)}
+    .navbar-burger{display:none;position:relative;width:44px;height:44px;margin:0;background:none;border:0;cursor:pointer}
+    .navbar-burger span{position:absolute;left:13px;width:18px;height:1.5px;background:var(--d-ink);
+      transition:transform .35s var(--ease),opacity .2s var(--ease),background .4s var(--ease)}
+    .navbar-burger span:nth-child(1){top:18px} .navbar-burger span:nth-child(2){top:23px} .navbar-burger span:nth-child(3){top:28px}
+    .navbar.is-scrolled .navbar-burger span{background:var(--ink)}
+    .navbar-burger.is-active span{background:var(--d-ink)!important}
+    .navbar-burger.is-active span:nth-child(1){top:23px;transform:rotate(45deg)}
+    .navbar-burger.is-active span:nth-child(2){opacity:0}
+    .navbar-burger.is-active span:nth-child(3){top:23px;transform:rotate(-45deg)}
 
-  <title>Tensor Product Attention Is All You Need</title>
-  <link rel="icon" type="image/x-icon" href="static/images/tensorgi.ico">
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-  rel="stylesheet">
+    /* Hero */
+    .hero{position:relative;background:var(--d-bg);color:var(--d-ink);overflow:hidden;padding-top:var(--nav-h);
+      min-height:62vh;min-height:62svh;display:flex;align-items:center}
+    .hero::before{content:"";position:absolute;inset:0;
+      background-image:linear-gradient(to right,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.045) 1px,transparent 1px);
+      background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 85% 75% at 50% 40%,#000 25%,transparent 78%);
+      mask-image:radial-gradient(ellipse 85% 75% at 50% 40%,#000 25%,transparent 78%)}
+    .hero::after{content:"";position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);width:80vw;height:80vw;
+      max-width:1000px;max-height:1000px;background:radial-gradient(circle,rgba(255,255,255,.11),transparent 62%);pointer-events:none}
+    .hero-body{position:relative;z-index:1;width:100%;padding-block:clamp(2.5rem,7vh,4.5rem)}
+    .hero .title{font-family:'Space Grotesk',sans-serif;font-weight:500;letter-spacing:-.035em;line-height:1.02;
+      color:var(--d-ink);font-size:clamp(2.4rem,6vw,4.6rem);margin-bottom:0}
+    .hero .subtitle{color:var(--d-ink-2)}
+    .hero .subtitle.is-hero-subtitle{color:var(--d-ink-2);font-size:clamp(1.05rem,1.7vw,1.35rem);max-width:820px;margin:1.2rem auto 0;font-weight:400;line-height:1.55}
+    .hero .subtitle .highlight{color:var(--d-ink);font-weight:500}
+    .hero .subtitle.is-4,.hero .subtitle.is-5{font-size:1.05rem;font-weight:500;margin-top:1.2rem;line-height:1.55}
+    .hero .subtitle.is-6{font-size:.85rem;margin-top:.4rem}
+    .hero .subtitle a,.authors-list a{color:var(--d-ink);border-bottom:1px solid var(--d-line)}
+    .hero .subtitle a:hover,.authors-list a:hover{border-bottom-color:var(--d-ink)}
+    .authors-list{font-size:1.02rem;line-height:1.7;margin-top:1.6rem;color:var(--d-ink-2);font-weight:500}
+    .affiliations{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--d-ink-3);margin-top:.7rem}
+    .project-links{margin-top:1.6rem}
+    .project-links a{color:var(--d-ink-2);font-size:1.2rem;margin:0 .55rem;transition:color .2s var(--ease),transform .2s var(--ease)}
+    .project-links a:hover{color:var(--d-ink);transform:translateY(-2px)}
+    .pill{display:inline-block;padding:.4rem .85rem;border-radius:100px;font-size:.68rem;font-weight:600;letter-spacing:.1em;
+      text-transform:uppercase;background:transparent;color:var(--d-ink-2);border:1px solid var(--d-line);margin:.22rem .2rem}
 
-  <link rel="stylesheet" href="static/css/bulma.min.css">
-  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="static/css/fontawesome.all.min.css">
-  <link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="static/css/index.css">
+    /* Sections / body */
+    .section.content-section{padding-block:clamp(3.5rem,8vh,6rem);border-bottom:1px solid var(--line)}
+    .section.content-section:nth-child(even){background:var(--bg-subtle)}
+    .section.content-section:last-of-type{border-bottom:none}
+    .section-title,.title.is-3.section-title{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.03em;line-height:1.1;
+      color:var(--ink);font-size:clamp(1.7rem,3.6vw,2.3rem);margin-bottom:1.75rem!important;text-align:left!important}
+    .content{max-width:var(--readw);margin:0 auto;line-height:1.8;font-size:1.06rem;color:var(--ink-2)}
+    .content .title.is-4,.title.is-4,.content h3{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.02em;color:var(--ink);font-size:1.3rem;margin:2.1rem 0 1rem}
+    .content .title.is-5,.title.is-5,.content h4{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--ink);font-size:1.12rem;margin:1.6rem 0 .6rem;line-height:1.3}
+    .content p{margin-bottom:1.2rem;color:var(--ink-2)} .content strong{color:var(--ink);font-weight:600}
+    .content a{color:var(--ink);border-bottom:1px solid var(--ink-3);font-weight:500;transition:border-color .2s var(--ease)}
+    .content a:hover{border-bottom-color:var(--ink)}
+    .content ul,.content ol{margin:0 0 1.2rem 1.4rem} .content li{margin-bottom:.5rem;color:var(--ink-2)}
+    .content img{display:block;margin:1.75rem auto;max-width:100%;border:1px solid var(--line);border-radius:12px}
+    .content figure{margin:1.75rem auto;text-align:center;max-width:100%}
+    .content figure img,figure img{margin:0 auto .6rem}
+    figcaption,.content figcaption{color:var(--ink-3);font-size:.85rem;line-height:1.6;max-width:820px;margin:.4rem auto 0}
+    .math-block{margin:1.6rem 0;overflow-x:auto;text-align:center}
+    .content pre,pre{background:var(--d-bg);color:#E7E7E3;border:1px solid var(--line);border-radius:12px;padding:1.2em 1.3em;overflow:auto;font-size:.9rem;margin:1.4rem 0;line-height:1.65}
+    code{background:var(--bg-subtle-2);color:var(--ink);padding:.16em .4em;border-radius:5px;font-size:85%}
+    pre code{background:transparent;color:inherit;padding:0;font-size:inherit}
+    .notification{position:relative;background:var(--bg-subtle);border-radius:0 10px 10px 0;padding:1.1rem 1.4rem;margin:1.6rem 0;color:var(--ink-2)}
+    .message{background:var(--bg-subtle);border-left:2px solid var(--ink);border-radius:0 10px 10px 0;margin:1.6rem 0}
+    .message-body{padding:1.1rem 1.4rem;color:var(--ink-2);border:0}
+    .box{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:1.5rem;margin:1rem 0;box-shadow:none;color:var(--ink-2)}
+    .has-background-light{background:var(--bg-subtle)!important}
+    .pillar-box,.book-item{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:1.25rem;height:100%;color:var(--ink-2);transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+    .book-item{font-size:.92rem;text-align:center}
+    .pillar-box:hover,.book-item:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(10,10,10,.06)}
+    .section.content-section:nth-child(even) :is(.notification,.message,.box,.pillar-box,.book-item,.diagram-container){background:#fff}
+    .columns{display:flex;flex-wrap:wrap;gap:1.5rem;margin:1rem 0} .columns.is-centered{justify-content:center} .columns.is-vcentered{align-items:center}
+    .column{flex:1 1 0;min-width:0;padding:0}
+    .column.is-4{flex:0 0 calc(33.333% - 1rem)} .column.is-5{flex:0 0 calc(41.666% - .75rem)}
+    .column.is-6,.column.is-half{flex:0 0 calc(50% - .75rem)} .column.is-one-quarter-desktop{flex:0 0 calc(25% - 1.125rem)}
+    .table-container{overflow-x:auto;margin:2rem 0;border:1px solid var(--line);border-radius:12px}
+    table.table,.table{width:100%;border-collapse:collapse;background:var(--bg);margin:0}
+    table.table th,.table th{background:var(--bg-subtle);color:var(--ink);font-weight:600;padding:1rem;text-align:left;border-bottom:2px solid var(--line)}
+    table.table td,.table td{padding:1rem;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+    table.table tr:last-child td{border-bottom:none}
+    .diagram-container{width:100%;margin:2rem 0;text-align:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:1.5rem;display:block}
+    .diagram-container img{border:0;margin:0 auto}
+    .mini-caption{display:block;margin-top:.6rem;color:var(--ink-3);font-style:italic;font-size:.85rem;text-align:center}
+    .profile-image{width:100%;max-width:280px;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--line);filter:grayscale(1)}
+    svg text{font-family:'Inter',sans-serif}
+    .button{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.1rem;border:1px solid var(--ink);border-radius:100px;
+      background:transparent;color:var(--ink);font-family:inherit;font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+      cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease);margin:.25rem}
+    .button:hover,.button.is-primary,.button.is-success{background:var(--ink);color:var(--bg)!important;border-color:var(--ink)}
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://documentcloud.adobe.com/view-sdk/main.js"></script>
-  <script defer src="static/js/fontawesome.all.min.js"></script>
-  <script src="static/js/bulma-carousel.min.js"></script>
-  <script src="static/js/bulma-slider.min.js"></script>
-  <script src="static/js/index.js"></script>
+    /* Footer */
+    .footer{background:var(--d-bg);color:var(--d-ink-2);padding-block:clamp(2.5rem,5vw,4rem);margin-top:auto;border-top:1px solid var(--d-line)}
+    .footer .content{max-width:var(--maxw);color:var(--d-ink-2)}
+    .footer .content p:first-child{font-size:.78rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:1rem;line-height:2.1}
+    .footer a{color:var(--d-ink-2);font-weight:600;transition:color .2s var(--ease)} .footer a:hover{color:var(--d-ink)}
+    .footer .content p:last-child{font-size:.85rem;color:var(--d-ink-3);letter-spacing:0;text-transform:none;font-weight:400}
+
+    @media(max-width:1023px){ .column.is-half-tablet,.column.is-one-quarter-desktop{flex:0 0 calc(50% - .75rem)} }
+    @media(max-width:820px){
+      .navbar-burger{display:block}
+      .navbar-menu{position:fixed;inset:0;background:var(--d-bg);flex-direction:column;justify-content:center;align-items:center;gap:1.5rem;
+        opacity:0;visibility:hidden;transform:translateY(-8px);z-index:150;transition:opacity .4s var(--ease),transform .4s var(--ease),visibility .4s}
+      .navbar-menu.is-active{opacity:1;visibility:visible;transform:none}
+      .navbar-end{flex-direction:column;gap:1.5rem;margin-left:0}
+      .navbar-menu .navbar-item{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:500;letter-spacing:-.01em;text-transform:none}
+      .navbar-menu .navbar-item::after{display:none}
+      .column,.column.is-4,.column.is-5,.column.is-6,.column.is-half,.column.is-half-tablet,.column.is-one-quarter-desktop{flex:1 1 100%}
+    }
+    @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} }
+  </style>
+
 </head>
 <body>
-
-
-  <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column has-text-centered">
-            <h1 class="title is-1 publication-title">Tensor Product Attention Is All You Need</h1>
-            <div class="is-size-5 publication-authors">
-              <!-- Paper authors -->
-              <span class="author-block">
-                <a href="https://yifzhang.com" target="_blank">Yifan Zhang</a><sup>*</sup><sup style="font-size: 0.7em; vertical-align: 50%;">◇</sup>,</span>
-                <span class="author-block">
-                  <a href="https://lauyikfung.github.io/" target="_blank">Yifeng Liu</a><sup>*</sup>,</span>
-                  <span class="author-block">
-                    <a href="https://scholar.google.com/citations?user=8foZzX4AAAAJ" target="_blank">Huizhuo Yuan</a>,</span>
-                    <span class="author-block">
-                      <a href="https://doraemonzzz.com" target="_blank">Zhen Qin</a>,</span>
-                      <span class="author-block">
-                        <a href="https://scholar.google.com/citations?user=7o4wtKEAAAAJ&hl=en" target="_blank">Yang Yuan</a>,</span>
-                        <span class="author-block">
-                          <a href="https://web.cs.ucla.edu/~qgu/" target="_blank">Quanquan Gu</a>,</span>
-                          <span class="author-block">
-                            <a href="https://en.wikipedia.org/wiki/Andrew_Yao" target="_blank">Andrew C Yao</a><sup>†</sup></span>
-                  </div>
-
-                  <div class="is-size-5 publication-authors">
-                    <span class="author-block">IIIS, Tsinghua University,&nbsp;&nbsp;&nbsp;Shanghai Qi Zhi Institute,</span><br>
-                    <span class="author-block">University of California, Los Angeles,&nbsp;&nbsp;&nbsp;TapTap</span><br>
-                    <span class="eql-cntrb"><small><sup>*</sup>Equal contribution</small></span>
-                    <span class="eql-cntrb"><small><sup style="font-size: 0.7em; line-height: 0;">◇</sup>Project lead</small></span>
-                    <span class="eql-cntrb"><small><sup>†</sup>Corresponding author</small></span>
-                  </div>
-
-                  <div class="column has-text-centered">
-                    <div class="publication-links">
-                         <!-- Arxiv PDF link -->
-                      <span class="link-block">
-                        <a href="Tensor_Product_Attention.pdf" target="_blank"
-                        class="external-link button is-normal is-rounded is-dark">
-                        <span class="icon">
-                          <i class="fas fa-file-pdf"></i>
-                        </span>
-                        <span>Paper</span>
-                      </a>
-                    </span>
-
-                  <!-- Github link -->
-                  <span class="link-block">
-                    <a href="https://github.com/tensorgi/TPA" target="_blank"
-                    class="external-link button is-normal is-rounded is-dark">
-                    <span class="icon">
-                      <i class="fab fa-github"></i>
-                    </span>
-                    <span>Code</span>
-                  </a>
-                </span>
-
-                <!-- ArXiv abstract Link -->
-                <span class="link-block">
-                  <a href="https://arxiv.org/abs/2501.06425" target="_blank"
-                  class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                    <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-              </span>
-
-              <!-- HuggingFace Model Link -->
-              <span class="link-block">
-                <a href="https://huggingface.co/papers/2501.06425" target="_blank"
-                class="external-link button is-normal is-rounded is-dark">
-                <span class="icon">
-                  <img src="static/images/hf-logo.svg" alt="My Icon">
-                </span>
-                <span>Huggingface</span>
-              </a>
-              </span>
-            </div>
-          </div>
-        </div>
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="container">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="#">TPA</a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu"><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span></a>
       </div>
+      <div id="navbarMenu" class="navbar-menu"><div class="navbar-end">
+          <a href="#abstract" class="navbar-item">Abstract</a>
+          <a href="#method" class="navbar-item">Method</a>
+          <a href="#results" class="navbar-item">Results</a>
+          <a href="#citation" class="navbar-item">Citation</a>
+          <a href="https://yfz.ai/blog" class="navbar-item">Blog</a>
+        </div></div>
     </div>
-  </div>
-</section>
-
-<!-- Paper abstract -->
-<section class="section hero is-light">
-  <div class="container is-max-desktop">
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
-            <p>
-                Scaling language models to handle longer input sequences typically necessitates large key-value (KV) caches, resulting in substantial memory overhead during inference.
-                In this paper, we propose <strong>T</strong>ensor <strong>P</strong>roduct <strong>A</strong>ttention (TPA), a novel attention mechanism that uses tensor decompositions to represent queries, keys, and values compactly, significantly shrinking KV cache size at inference time.
-                By factorizing these representations into contextual low-rank components (contextual factorization) and seamlessly integrating with RoPE, TPA achieves improved model quality alongside memory efficiency.
-                Based on TPA, we introduce the <strong>T</strong>ensor Produc<strong>T</strong> A<strong>T</strong><strong>T</strong>en<strong>T</strong>ion <strong>T</strong>ransformer (<strong>T6</strong>), a new model architecture for sequence modeling. Through extensive empirical evaluation of language modeling tasks, we demonstrate that <strong>T6</strong> exceeds the performance of standard Transformer baselines including MHA, MQA, GQA, and MLA across various metrics, including perplexity and a range of renowned evaluation benchmarks.
-                Notably, TPA's memory efficiency enables the processing of significantly longer sequences under fixed resource constraints, addressing a critical scalability challenge in modern language models.
-            </p>
-        </div>
+  </nav>
+  <header class="hero is-medium">
+    <div class="hero-body"><div class="container has-text-centered">
+      <h1 class="title">Tensor Product Attention</h1>
+      <h2 class="subtitle is-hero-subtitle"><span class="highlight">Tensor Product Attention Is All You Need</span><br>A tensor-decomposition attention that shrinks the KV cache 10&times; or more while improving quality &mdash; and the T6 Transformer built on it.</h2>
+      <div class="authors-list"><a href="https://yifzhang.com" target="_blank" rel="noopener">Yifan Zhang</a>*&#9671; &middot; <a href="https://lauyikfung.github.io/" target="_blank" rel="noopener">Yifeng Liu</a>* &middot; Huizhuo Yuan &middot; <a href="https://doraemonzzz.com" target="_blank" rel="noopener">Zhen Qin</a> &middot; Yang Yuan &middot; <a href="https://web.cs.ucla.edu/~qgu/" target="_blank" rel="noopener">Quanquan Gu</a> &middot; Andrew C Yao&dagger;</div>
+      <div class="affiliations">IIIS, Tsinghua &middot; Shanghai Qi Zhi &middot; UCLA &middot; TapTap &nbsp;&middot;&nbsp; NeurIPS 2025 Spotlight &middot; arXiv:2501.06425</div>
+      <div class="project-links">
+          <a href="Tensor_Product_Attention.pdf" target="_blank" rel="noopener" aria-label="Paper PDF"><i class="fas fa-file-pdf"></i></a>
+          <a href="https://arxiv.org/abs/2501.06425" target="_blank" rel="noopener" aria-label="arXiv"><i class="fas fa-graduation-cap"></i></a>
+          <a href="https://github.com/tensorgi/TPA" target="_blank" rel="noopener" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="https://huggingface.co/papers/2501.06425" target="_blank" rel="noopener" aria-label="Hugging Face">🤗</a>
+          <a href="#citation" aria-label="Citation"><i class="fas fa-quote-right"></i></a>
       </div>
-    </div>
-  </div>
-</section>
-<!-- End paper abstract -->
-
-<!-- TPA. -->
-<div class="columns is-centered">
-  <div class="column is-three-fifths">
-    <h2 class="title is-3"> </h2>
-    <h2 class="title is-3">[NeurIPS 2025 Spotlight] Tensor Product Attention</h2>
-    <p align="center">
-      <img src="static/images/architecture.png" width="1024" height="768"/>
-    </p>
-  </div>
-</div>
-<!--/ TPA. -->
-<!-- Results. -->
-<div class="columns is-centered">
-  <div class="column is-three-fifths">
-    <div class="content has-text-justified">
-      <ul>
-        <li>
-            We propose <strong>Tensor Product Attention (TPA)</strong>, a mechanism that factorizes 
-            <strong>Q</strong>, <strong>K</strong>, and <strong>V</strong> activations using 
-        <em>contextual</em> tensor-decompositions to achieve <span>10 times</span> or more reduction in inference-time KV cache size relative to standard attention mechanism 
-        <a href="#cite-vaswani2017attention">[Vaswani et al., 2017]</a> with improved performance compared to previous methods such as MHA, MQA, GQA, and MLA.
-        </li>
-        <li>
-            In addition, we <strong>unify existing attention mechanisms</strong> by revealing that MHA, MQA, and GQA <strong>all</strong> arise naturally as non-contextual variants of TPA.
-        </li>
-        <li>
-            We introduce <strong>T</strong>ensor Produc<strong>T</strong> A<strong>T</strong><strong>T</strong>en<strong>T</strong>ion <strong>T</strong>ransformer (<strong>T6</strong>), a new TPA-based model architecture for sequence modeling. On language modeling experiments, <strong>T6</strong> consistently improves validation perplexity and downstream evaluation performance with reduced KV cache size.
-        </li>
-        <li>
-            We show <strong>TPA</strong> integrates seamlessly with RoPE 
-            <a href="#cite-su2021roformer">[Su et al., 2024]</a>, facilitating easy adoption in popular foundation model architectures such as LLaMA and Gemma.
-        </li>
-      </ul>
-    </div>
-  </div>
-</div>
-<!--/ Results. -->
-
-<!-- Results. -->
-<div class="columns is-centered">
-    <div class="column is-three-fifths">
-      <div class="content has-text-justified">
-        <h4 class="title">Experimental Results</h4>
+      <div style="margin-top:.9rem;font-size:.8rem;color:var(--d-ink-3)">* Equal contribution &nbsp;&middot;&nbsp; &#9671; Project lead &nbsp;&middot;&nbsp; &dagger; Corresponding author</div>
+      <div style="margin-top:1.1rem;">
+          <span class="pill">Attention</span><span class="pill">KV Cache</span><span class="pill">Tensor Decomposition</span><span class="pill">RoPE</span>
+      </div>
+    </div></div>
+  </header>
+  <main>
+    <section id="abstract" class="section content-section"><div class="container">
+      <h2 class="section-title">Abstract</h2>
+      <div class="content"><p>Scaling language models to handle longer input sequences typically necessitates large key-value (KV) caches, resulting in substantial memory overhead during inference. We propose <strong>Tensor Product Attention (TPA)</strong>, a novel attention mechanism that uses tensor decompositions to represent queries, keys, and values compactly, significantly shrinking KV cache size at inference time. By factorizing these representations into contextual low-rank components (contextual factorization) and seamlessly integrating with RoPE, TPA achieves improved model quality alongside memory efficiency. Based on TPA, we introduce the <strong>Tensor ProducT ATTenTion Transformer (T6)</strong>, a new architecture for sequence modeling. Across language-modeling tasks, <strong>T6</strong> exceeds standard Transformer baselines including MHA, MQA, GQA, and MLA on perplexity and a range of benchmarks. Notably, TPA&rsquo;s memory efficiency enables processing significantly longer sequences under fixed resource constraints.</p></div>
+    </div></section>
+    <section id="method" class="section content-section"><div class="container">
+      <h2 class="section-title">Tensor Product Attention</h2>
+      <div class="content">
+        <figure><img src="static/images/architecture.png" alt="TPA / T6 architecture"></figure>
+        <ul>
+          <li>We propose <strong>Tensor Product Attention (TPA)</strong>, factorizing <strong>Q</strong>, <strong>K</strong>, and <strong>V</strong> activations using <em>contextual</em> tensor decompositions to achieve <strong>10&times; or more</strong> reduction in inference-time KV cache size relative to standard attention [Vaswani et al., 2017], with improved performance over MHA, MQA, GQA, and MLA.</li>
+          <li>We <strong>unify existing attention mechanisms</strong> by revealing that MHA, MQA, and GQA all arise naturally as non-contextual variants of TPA.</li>
+          <li>We introduce the <strong>Tensor ProducT ATTenTion Transformer (T6)</strong>, a TPA-based architecture that consistently improves validation perplexity and downstream performance with reduced KV cache size.</li>
+          <li>We show <strong>TPA</strong> integrates seamlessly with RoPE [Su et al., 2024], easing adoption in foundation-model architectures such as LLaMA and Gemma.</li>
+        </ul>
+        <h3>Tensor Factorization of Queries, Keys, and Values</h3>
+        <figure><img src="static/images/sec3_1.png" alt="Tensor factorization of Q, K, V"></figure>
+        <h3>KV Caching and Memory Reduction</h3>
+        <figure><img src="static/images/sec3_3.png" alt="KV caching and memory reduction"></figure>
+      </div>
+    </div></section>
+    <section id="results" class="section content-section"><div class="container">
+      <h2 class="section-title">Experimental Results</h2>
+      <div class="content">
+        <figure><img src="static/images/train-loss.png" alt="Training loss"><figcaption>Training loss of medium (353M), large (773M), and XL (1.5B) models with different attention mechanisms on FineWeb-Edu 100B.</figcaption></figure>
+        <figure><img src="static/images/val-loss.png" alt="Validation loss"><figcaption>Validation loss of medium (353M), large (773M), and XL (1.5B) models on FineWeb-Edu 100B.</figcaption></figure>
         <figure>
-            <p align="center">
-              <img src="static/images/train-loss.png" width="900" height="600" alt="Training loss plot"/>
-            </p>
-            <figcaption align="center">
-              The training loss of medium-size (353M), large-size (773M), as well as XL-size (1.5B) models, with different attention mechanisms on the FineWeb-Edu 100B dataset.
-            </figcaption>
-          </figure>
-        <figure>
-          <p align="center">
-            <img src="static/images/val-loss.png" width="900" height="600" alt="Validation loss plot"/>
-          </p>
-          <figcaption align="center">
-            The validation loss of medium-size (353M), large-size (773M), as well as XL-size (1.5B) models, with different attention mechanisms on the FineWeb-Edu 100B dataset.
-          </figcaption>
+          <img src="static/images/table2.png" alt="Medium-size (353M) evaluation">
+          <img src="static/images/table3.png" alt="Large-size (773M) evaluation">
+          <img src="static/images/table7.png" alt="XL-size (1.5B) evaluation">
+          <figcaption>Downstream evaluation (zero-shot and two-shot) on ARC, BoolQ, HellaSwag, OBQA, PIQA, WinoGrande, and MMLU via the lm-evaluation-harness.</figcaption>
         </figure>
-        <figure>
-            <p align="center">
-                <img src="static/images/table2.png" width="800" height="800" alt="The evaluation results of pretrained medium-size models (353M)"/>
-            </p>
-            <p align="center">
-                <img src="static/images/table3.png" width="800" height="800" alt="The evaluation results of pretrained large-size models (773M)"/>
-            </p>
-            <p align="center">
-                <img src="static/images/table7.png" width="800" height="800" alt="The evaluation results of pretrained XL-size models (1.5B)"/>
-            </p>
-            <figcaption align="center">
-                Downstream Evaluation. We evaluate zero-shot and two-shot performance on standard benchmarks, including ARC (Yadav et al., 2019), BoolQ (Clark et al., 2019), HellaSwag (Zellers et al.,
-                2019), OBQA (Mihaylov et al., 2018), PIQA (Bisk et al., 2020), WinoGrande (Sakaguchi et al.,
-                2020) and MMLU (Hendrycks et al., 2021), using the lm-evaluation-harness codebase (Gao
-                et al., 2024).
-            </figcaption>
-          </figure>
       </div>
-    </div>
-</div>
-<!--/ Results. -->
-
-<!-- Results. -->
-<div class="columns is-centered">
-    <div class="column is-three-fifths">
-      <div class="content has-text-justified">
-        <h4 class="title">Tensor Factorization of Queries, Keys, and Values</h4>
-        <figure>
-            <p align="center">
-              <img src="static/images/sec3_1.png" width="900" height="600" alt="Tensor Factorization of Queries, Keys, and Values"/>
-            </p>
-          </figure>
-      </div>
-    </div>
-</div>
-<!--/ Results. -->
-
-<!-- Results. -->
-<!-- <div class="columns is-centered">
-    <div class="column is-three-fifths">
-      <div class="content has-text-justified">
-        <h4 class="title">RoPE Compatibility and Acceleration</h4>
-        <figure>
-            <p align="center">
-              <img src="static/images/sec3_2.png" width="900" height="600" alt="RoPE Compatibility and Acceleration"/>
-            </p>
-          </figure>
-      </div>
-    </div>
-</div> -->
-<!--/ Results. -->
-
-<!-- Results. -->
-<div class="columns is-centered">
-    <div class="column is-three-fifths">
-      <div class="content has-text-justified">
-        <h4 class="title">KV Caching and Memory Reduction</h4>
-        <figure>
-            <p align="center">
-              <img src="static/images/sec3_3.png" width="900" height="600" alt="KV Caching and Memory Reduction"/>
-            </p>
-          </figure>
-      </div>
-    </div>
-</div>
-<!--/ Results. -->
-
-<!-- <section class="section" id="References">
-    <div id="cite-vaswani2017attention">
-        <p><strong>[Vaswani et al., 2017]</strong> Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez,
-            Łukasz Kaiser, and Illia Polosukhin. Attention is all you need. <em>Advances in neural informa-
-                tion processing systems</em>, 30, 2017.</p>
-    </div>
-    <div id="cite-su2024roformer">
-        <p><strong>[Su et al., 2024]</strong> Jianlin Su, Murtadha Ahmed, Yu Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu. Roformer: Enhanced transformer with rotary position embedding. <em>Neurocomputing, 568:127063</em>, 2024.</p>
-    </div>
-</section> -->
-
-<!--BibTex citation -->
-  <section class="section" id="BibTeX">
-    <div class="container is-max-desktop content">
-      <h2 class="title">Citation</h2>
-      <p>
-        Please cite the paper and star this <a href="https://github.com/tensorgi/T6" target="_blank">repo</a> if you use Tensor Product Attention (TPA) or the Tensor ProducT ATTenTion Transformer (T6) and find it interesting/useful, thanks! 
-      </p>
-      <pre><code>@article{zhang2025tensor,
-    title={Tensor Product Attention Is All You Need},
-    author={Zhang, Yifan and Liu, Yifeng and Yuan, Huizhuo and Qin, Zhen and Yuan, Yang and Gu, Quanquan and Yao, Andrew Chi-Chih},
-    journal={arXiv preprint arXiv:2501.06425},
-    year={2025},
+    </div></section>
+    <section id="citation" class="section content-section"><div class="container">
+      <h2 class="section-title">Citation</h2>
+      <div class="content"><p>If you use TPA or the T6 Transformer, please cite:</p>
+<pre id="cite-bibtex"><code>@article{zhang2025tensor,
+    title   = {Tensor Product Attention Is All You Need},
+    author  = {Zhang, Yifan and Liu, Yifeng and Yuan, Huizhuo and Qin, Zhen and Yuan, Yang and Gu, Quanquan and Yao, Andrew Chi-Chih},
+    journal = {arXiv preprint arXiv:2501.06425},
+    year    = {2025}
 }</code></pre>
-    </div>
-</section>
-<!--End BibTex citation -->
-
-
-  <footer class="footer">
-  <div class="container">
-    <div class="columns is-centered">
-      <div class="column is-8">
-        <div class="content">
-
-          <p>
-            This page was built using the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a> which was adopted from the <a href="https://nerfies.github.io" target="_blank">Nerfies</a> project page.
-            <br> This website is licensed under a <a rel="license"  href="http://creativecommons.org/licenses/by-sa/4.0/" target="_blank">Creative
-            Commons Attribution-ShareAlike 4.0 International License</a>.
-          </p>
-
-        </div>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<!-- Statcounter tracking code -->
-  
-<!-- You can add a tracker to track page visits by creating an account at statcounter.com -->
-
-    <!-- End of Statcounter Code -->
-
-  </body>
-  </html>
+        <p><button id="copy-cite" class="button"><span class="icon"><i class="fas fa-clipboard"></i></span><span>Copy BibTeX</span></button></p></div>
+    </div></section>
+  </main>
+  <footer class="footer"><div class="container"><div class="content has-text-centered">
+    <p><a href="#abstract">Abstract</a> &nbsp;&bull;&nbsp; <a href="#method">Method</a> &nbsp;&bull;&nbsp;
+       <a href="#results">Results</a> &nbsp;&bull;&nbsp; <a href="#citation">Citation</a> &nbsp;&bull;&nbsp;
+       <a href="https://github.com/tensorgi/TPA">GitHub</a> &nbsp;&bull;&nbsp;
+       <a href="https://yfz.ai/blog">Yifan's Blog</a></p>
+    <p>&copy; 2025 TPA / T6 authors.</p>
+  </div></div></footer>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const navbar = document.querySelector('.navbar');
+      const hero = document.querySelector('.hero');
+      const burgers = Array.from(document.querySelectorAll('.navbar-burger'));
+      if (navbar && hero && 'IntersectionObserver' in window) {
+        new IntersectionObserver(([e]) => navbar.classList.toggle('is-scrolled', !e.isIntersecting),
+          { rootMargin: '-69px 0px 0px 0px', threshold: 0 }).observe(hero);
+      }
+      const closeMenu = () => {
+        document.querySelectorAll('.navbar-burger.is-active').forEach(b => b.classList.remove('is-active'));
+        document.querySelectorAll('.navbar-menu.is-active').forEach(m => m.classList.remove('is-active'));
+        document.body.classList.remove('nav-open');
+      };
+      burgers.forEach(el => el.addEventListener('click', () => {
+        const target = document.getElementById(el.dataset.target);
+        el.classList.toggle('is-active'); if (target) target.classList.toggle('is-active');
+        document.body.classList.toggle('nav-open', el.classList.contains('is-active'));
+      }));
+      document.querySelectorAll('.navbar-menu .navbar-item').forEach(a => a.addEventListener('click', closeMenu));
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+      const btn = document.getElementById('copy-cite'), pre = document.getElementById('cite-bibtex');
+      if (btn && pre) { btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(pre.innerText); btn.classList.add('is-success');
+          btn.innerHTML = '<span class="icon"><i class="fas fa-check"></i></span><span>Copied</span>';
+          setTimeout(() => { btn.classList.remove('is-success'); btn.innerHTML = '<span class="icon"><i class="fas fa-clipboard"></i></span><span>Copy BibTeX</span>'; }, 1600);
+        } catch (e) { const r=document.createRange(); r.selectNode(pre); const s=window.getSelection(); s.removeAllRanges(); s.addRange(r); try{document.execCommand('copy')}catch(_){}; s.removeAllRanges(); }
+      }); }
+    });
+  </script>
+</body>
+</html>
