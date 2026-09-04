@@ -154,7 +154,7 @@ Evaluate the performance of the pretrained T6 model using standardized benchmark
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tensorgi/TPA&type=Date)](https://star-history.com/#tensorgi/TPA&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=tensorgi/TPA&type=Date)](https://star-history.dera.page/#tensorgi/TPA&Date)
 
 ## Citation
 
